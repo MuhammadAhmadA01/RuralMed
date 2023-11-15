@@ -35,4 +35,20 @@ const createCustomer = (req, res) => {
 
     });
 };
-module.exports = { createCustomer };
+const createPrescription = (req, res) => {
+  const { customerEmail, duration } = req.body;
+
+  prescription.create({
+    customerEmail,
+    duration,
+    picture: req.file.filename // Multer stores the uploaded file in req.file
+  })
+    .then(newPrescription => {
+      res.status(201).json(newPrescription);
+    })
+    .catch(error => {
+      console.error('Error creating prescription:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    });
+};
+module.exports = { createCustomer,createPrescription };
