@@ -34,5 +34,34 @@ const createOwner = (req, res) => {
        
     });
 };
+const addProduct = (req, res) => {
+  const { storeId, name, price, description, availableQuantity } = req.body;
 
-module.exports = { createOwner };
+  // Check if the specified storeId exists in the stores table
+  Store.findByPk(storeId)
+    .then((existingStore) => {
+      if (!existingStore) {
+        throw { status: 400, message: "email is already in use" };
+      }
+
+      // If the store exists, proceed to create the new product
+      return Product.create({
+        storeId,
+        name,
+        price,
+        description,
+        availableQuantity,
+      });
+    })
+    .then((newProduct) => {
+      res.status(201).json(newProduct);
+    })
+    .catch((error) => {
+      console.error("Error adding product:", error);
+      const status = error.status || 500;
+      res
+        .status(status)
+        .json({ error: error.message || "Internal Server Error" });
+    });
+};
+module.exports = { createOwner,addProduct };
