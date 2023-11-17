@@ -113,4 +113,34 @@ const viewProfile = (req, res) => {
       res.status(500).json({ error: "Internal Server Error" });
     });
 };
-module.exports = { createCustomer, createPrescription, viewOrders,viewProfile };
+const viewPrescriptions = (req, res) => {
+  const { email } = req.params;
+
+  Prescription.findAll({
+    where: {
+      customerEmail: email,
+    },
+  })
+    .then((prescriptions) => {
+      if (prescriptions.length == 0)
+        throw {
+          status: 400,
+          message: "No Prescriptions exist against this user",
+        };
+      else res.status(200).json(prescriptions);
+    })
+    .catch((error) => {
+      console.error("Error creating customer:", error);
+      const status = error.status || 500;
+      res
+        .status(status)
+        .json({ error: error.message || "Internal Server Error" });
+    });
+};
+module.exports = {
+  createCustomer,
+  createPrescription,
+  viewOrders,
+  viewProfile,
+  viewPrescriptions,
+};
