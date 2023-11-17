@@ -69,5 +69,48 @@ const viewOrders = (req, res) => {
       res.status(500).json({ error: "Internal Server Error" });
     });
 };
+const viewProfile = (req, res) => {
+  const { email } = req.params;
+  // Retrieve customer record from the 'customers' table
+  Customers.findOne({
+    where: { email: email },
+    attributes: { exclude: ["id"] },
+  })
+    .then((customerRecord) => {
+      if (!customerRecord) {
+        return res
+          .status(404)
+          .json({ error: "Customer not found with this email." });
+      }
 
-module.exports = { createCustomer, createPrescription, viewOrders };
+      // Retrieve user record from the 'users' table
+      USER.findOne({
+        where: { email: email },
+        attributes: { exclude: ["password", "role"] },
+      })
+        .then((userRecord) => {
+          if (!userRecord) {
+            return res
+              .status(404)
+              .json({ error: "customer not found with this email." });
+          }
+
+          // Combine and send the response
+          const combinedResponse = {
+            customer: customerRecord.toJSON(),
+            user: userRecord.toJSON(),
+          };
+
+          res.status(200).json(combinedResponse);
+        })
+        .catch((error) => {
+          console.error("Error retrieving user record:", error);
+          res.status(500).json({ error: "Internal Server Error" });
+        });
+    })
+    .catch((error) => {
+      console.error("Error retrieving customer record:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    });
+};
+module.exports = { createCustomer, createPrescription, viewOrders,viewProfile };
