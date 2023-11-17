@@ -137,10 +137,98 @@ const viewPrescriptions = (req, res) => {
         .json({ error: error.message || "Internal Server Error" });
     });
 };
+
+const placeOrder = (req, res) => {
+  const {
+    customerID,
+    riderId,
+    ownerId,
+    shippingCharges,
+    orderStatus,
+    isPrescription,
+    orderDetails,
+  } = req.body;
+  let calculatedOrderTotal;
+
+  // Validate that quantity is not more than availableQuantity for each product
+  const validateQuantity = () => {
+    return Promise.all(
+      orderDetails.map((detail) =>
+        Product.findByPk(detail.prodId).then((product) => {
+          if (!product || detail.quantity > product.availableQuantity) {
+            throw {
+              status: 400,
+              message:
+                "Invalid product or quantity exceeds available quantity.",
+            };
+          }
+        })
+      )
+    );
+  };
+
+  // Calculate orderTotal by adding all subtotals and shipping charges
+  const calculateOrderTotal = () => {
+    calculatedOrderTotal =
+      orderDetails.reduce((acc, detail) => acc + detail.subtotal, 0) +
+      shippingCharges;
+    return Promise.resolve();
+  };
+
+  // Update availableQuantity, calculate subtotal, and create the order
+  const processOrderDetails = () => {
+    const updateProduct = (detail) => {
+      return Product.findByPk(detail.prodId).then((product) => {
+        if (!product) {
+          throw { status: 400, message: "Invalid product." };
+        }
+        // Update availableQuantity in the products table
+        product.availableQuantity -= detail.quantity;
+        // Calculate subtotal based on the product's price
+        detail.subtotal = product.price * detail.quantity;
+        return product.save();
+      });
+    };
+
+    const updateProductsPromises = orderDetails.map(updateProduct);
+    return Promise.all(updateProductsPromises);
+  };
+
+  // Create the order
+  const createOrder = () => {
+    return Orders.create({
+      customerID,
+      riderId,
+      ownerId,
+      shippingCharges,
+      orderTotal: calculatedOrderTotal,
+      orderStatus,
+      isPrescription,
+      orderDetails,
+    });
+  };
+
+  // Handle the entire process using .then and .catch notation
+  validateQuantity()
+    .then(calculateOrderTotal)
+    .then(processOrderDetails)
+    .then(createOrder)
+    .then((newOrder) => {
+      res.status(201).json(newOrder);
+    })
+    .catch((error) => {
+      console.error("Error placing order:", error);
+      const status = error.status || 500;
+      res
+        .status(status)
+        .json({ error: error.message || "Internal Server Error" });
+    });
+};
 module.exports = {
   createCustomer,
   createPrescription,
   viewOrders,
   viewProfile,
   viewPrescriptions,
+  placeOrder
 };
