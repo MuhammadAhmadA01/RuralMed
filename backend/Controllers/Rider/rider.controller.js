@@ -74,4 +74,20 @@ const viewProfile = (req, res) => {
     });
 };
 
-module.exports = { createRider,viewProfile };
+const viewOrders = (req, res) => {
+  const { id } = req.params;
+
+  Orders.findAll({
+    where: {
+      riderId: id,
+    },
+  })
+    .then((orders) => {
+      res.status(200).json(orders);
+    })
+    .catch((error) => {
+      console.error("Error fetching orders:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    });
+};
+module.exports = { createRider,viewProfile,viewOrders };
