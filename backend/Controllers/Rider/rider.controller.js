@@ -90,4 +90,76 @@ const viewOrders = (req, res) => {
       res.status(500).json({ error: "Internal Server Error" });
     });
 };
-module.exports = { createRider,viewProfile,viewOrders };
+const getRiderMonthlyStats = (req, res) => {
+  const { riderId } = req.params;
+
+  // Calculate the start and end date of the current month
+  const currentDate = new Date();
+  const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+  const endDate = currentDate;
+
+  // Calculate the start and end date of the previous month
+  const lastMonthStartDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+  const lastMonthEndDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
+
+  let prevMonthResults;
+  let currentMonthStats; // Declare variable outside the scope
+
+  // Earning and number of orders in previous month from current date
+  Orders.findOne({
+    attributes: [
+      [sequelize.literal('SUM(CASE WHEN "orderStatus" = \'completed\' AND "dateOfOrder" BETWEEN :start AND :end THEN "shippingCharges" ELSE 0 END)'), 'prevMonthEarning'],
+      [sequelize.literal('COUNT(CASE WHEN "orderStatus" = \'completed\' AND "dateOfOrder" BETWEEN :start AND :end THEN 1 END)'), 'prevMonthOrders'],
+    ],
+    where: {
+      riderId,
+    },
+    replacements: { start: lastMonthStartDate, end: lastMonthEndDate },
+  })
+    .then((results) => {
+      prevMonthResults = results.get({ plain: true });
+      // Earning and number of orders in current month from 1st date to current date
+      return Orders.findOne({
+        attributes: [
+          [sequelize.literal('SUM(CASE WHEN "orderStatus" = \'completed\' AND "dateOfOrder" BETWEEN :start AND :end THEN "shippingCharges" ELSE 0 END)'), 'currentMonthEarning'],
+          [sequelize.literal('COUNT(CASE WHEN "orderStatus" = \'completed\' AND "dateOfOrder" BETWEEN :start AND :end THEN 1 END)'), 'currentMonthOrders'],
+   
+        ],
+        where: {
+          riderId,
+        },
+        replacements: { start: startDate, end: endDate },
+      });
+    })
+    .then((currentMonthResults) => {
+currentMonthStats=currentMonthResults.get({ plain: true })
+      return Orders.count({
+        where: {
+          riderId,
+          orderStatus: 'in-progress',
+          dateOfOrder: {
+            [Op.between]: [startDate, endDate],
+          },
+        },
+      })
+        .then((inProgressOrders) => {
+          // Construct the final response
+          const result = {
+            prevMonthEarning: prevMonthResults.prevMonthEarning || 0,
+            prevMonthOrders: prevMonthResults.prevMonthOrders || 0,
+            currentMonthEarning: currentMonthStats.currentMonthEarning || 0,
+            currentMonthOrders: currentMonthStats.currentMonthOrders || 0,
+            inProgressOrders,
+          };
+
+          // Send the response
+          res.json(result);
+        });
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    });
+};
+
+module.exports = { createRider,viewProfile,viewOrders,getRiderMonthlyStats };
