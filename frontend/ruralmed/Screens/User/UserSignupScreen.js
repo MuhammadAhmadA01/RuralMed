@@ -1,3 +1,4 @@
+import IP_ADDRESS from '../../config/config';
 import React, { useState } from 'react';
 import {
   Text,
@@ -11,6 +12,7 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { styles } from '../styles/styles';
 import MapComponent from '../MapView/MapInputComponent'; 
+import { Appbar } from 'react-native-paper';
 
 const Signup = ({ navigation }) => {
   const [firstName, setFirstName] = useState("");
@@ -44,13 +46,14 @@ const Signup = ({ navigation }) => {
         if (!response.canceled) {
           const uri = response.uri;
           const name = new Date().getTime() + "_profile";
-          const type = "image/jpeg";
+          const type = "image/jpg";
           const newFormData = new FormData();
           newFormData.append("email", email);
           newFormData.append("profile", { name, uri, type });
 
           setSelectedImage(uri);
           setFormData(newFormData);
+          console.log(formData) 
         }
       })
       .catch(error => {
@@ -105,7 +108,7 @@ const Signup = ({ navigation }) => {
       picture: null,
       address: locationString,
     };
-    fetch("http://192.168.0.111:5000/validate-user-data", {
+    fetch(`http://${IP_ADDRESS}:5000/validate-user-data`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -119,7 +122,7 @@ const Signup = ({ navigation }) => {
           console.log("User data validated successfully");
           
           // Proceed with the rest of your signup logic
-          
+          console.log(formData)
           navigation.navigate(`${role}`, {
             userData,
             image: formData,
@@ -138,7 +141,7 @@ const Signup = ({ navigation }) => {
       });
   };  return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Sign Up</Text>
+      <Text  style={styles.title}>Sign Up</Text>
       {errorMessage && <Text style={styles.error}>{errorMessage}</Text>}
       <View style={styles.inputContainer}>
         <TextInput
@@ -253,6 +256,7 @@ const Signup = ({ navigation }) => {
         </TouchableOpacity>
       </View>
     </ScrollView>
+    
   );
 };
 

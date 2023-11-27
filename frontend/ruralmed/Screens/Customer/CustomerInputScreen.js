@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
 import { styles } from "../styles/styles";
-
+import IP_ADDRESS from "../../config/config";
 const CustomerScreen = ({ route,navigation }) => {
   const { email } = route.params.userData;
-  const { formData } = route.params.image;
+  const  formData  = (route.params.image);
   const { userData } = route.params;
   const [cnic, setCnic] = useState("");
-  console.log(formData);
   const [deliveryFee, setDeliveryFee] = useState("");
 
   const handleSave = () => {
@@ -24,7 +23,7 @@ const CustomerScreen = ({ route,navigation }) => {
       return;
     }
 
-    fetch("http://192.168.0.111:5000/customer-details", {
+    fetch(`http://${IP_ADDRESS}:5000/customer-details`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -47,7 +46,7 @@ const CustomerScreen = ({ route,navigation }) => {
         return;
       })
       .then(() => {
-        return fetch("http://192.168.0.111:5000/signup", {
+        return fetch(`http://${IP_ADDRESS}:5000/signup`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -73,19 +72,17 @@ const CustomerScreen = ({ route,navigation }) => {
         return;
       })
       .then(() => {
-        console.log(route.params.image); // Make sure formData is defined at this point
-        return fetch("http://192.168.0.111:5000/upload", {
+        return fetch(`http://${IP_ADDRESS}:5000/upload`, {
           method: "POST",
           headers: {
             Accept: "application/json",
-            "Content-Type": "multipart/form-data",
+            "Content-type": "multipart/form-data",
           },
-          body: formData,
+          body:formData,
         });
       })
-      .then(response => response.text())
+      .then(response => response.json())
       .then(data => {
-        console.log(data);
         if (data.success) {
           Alert.alert("Success", "Use your email and password to login now");
            navigation.navigate('login')
@@ -96,7 +93,7 @@ const CustomerScreen = ({ route,navigation }) => {
         }
       })
       .catch(error => {
-        console.log("Error uploading image:", error.message);
+        Alert.alert("Error uploading image:", error.message);
         route.params.navigateBack();
 
         return;
