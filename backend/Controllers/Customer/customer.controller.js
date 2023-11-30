@@ -224,11 +224,73 @@ const placeOrder = (req, res) => {
         .json({ error: error.message || "Internal Server Error" });
     });
 };
+const getNearbyStoresForCustomers = async (req, res) => {
+  const { email } = req.params;
+  try {
+    // Get the user's address based on the provided email
+    const user = await USER.findOne({ where: { email } });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const addressComponents = user.address.split(",");
+    if (addressComponents.length !== 2) {
+      return res.status(400).json({ error: "Invalid address format" });
+    }
+
+    const [lng, lat] = addressComponents.map((coord) =>
+      parseFloat(coord.trim())
+    );
+
+    // Use raw SQL to find IDs of all riders nearby the user's address
+    const nearbyRiders = await USER.findAll({
+      attributes: ["email"],
+      where: literal(`
+        ${lat} IS NOT NULL AND ${lng} IS NOT NULL AND
+        role = 'Rider' AND
+        6371 * acos(
+          cos(radians(${lat})) * cos(radians(SPLIT_PART(address, ',', 2)::float8)) *
+          cos(radians(SPLIT_PART(address, ',', 1)::float8) - radians(${lng})) +
+          sin(radians(${lat})) * sin(radians(SPLIT_PART(address, ',', 2)::float8))
+        )  <= 3
+      `),
+      include: [],
+    });
+    const riderEmails = nearbyRiders.map((rider) => rider.email);
+    // Retrieve working areas of those riders from the Riders table
+    const workingAreas = await Rider.findAll({
+      attributes: ["workingArea"],
+      where: literal(`
+    email IN (${riderEmails.map((email) => `'${email}'`).join(",")})
+  `),
+    });
+    const response = workingAreas.map((rider) => rider.workingArea);
+    const storeConditions = response
+      .map((area) => {
+        const [areaLng, areaLat] = area
+          .split(",")
+          .map((coord) => parseFloat(coord.trim()));
+        return `
+      6371 * acos(cos(radians(${areaLat})) *  cos(radians(SPLIT_PART(store_address, ',', 2)::float8)) * cos(radians(SPLIT_PART(store_address, ',', 1)::float8) - radians(${areaLng})) + sin(radians(${areaLat})) * sin(radians(SPLIT_PART(store_address, ',', 2)::float8))) <= 3`;
+      })
+      .join(` OR `);
+    const stores = await Store.findAll({
+      where: literal(storeConditions),
+      //  include: [],
+    });
+    return res.status(200).json({ stores });
+  } catch (error) {
+    console.error("Error fetching nearby stores:", error);
+    return res
+      .status(500)
+      .json({ error: "An error occurred while fetching nearby stores" });
+  }
+};
 module.exports = {
   createCustomer,
   createPrescription,
   viewOrders,
   viewProfile,
   viewPrescriptions,
-  placeOrder
+  placeOrder,
+  getNearbyStoresForCustomers,
 };
