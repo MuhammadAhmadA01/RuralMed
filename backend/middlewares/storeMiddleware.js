@@ -2,7 +2,7 @@ const { body, validationResult } = require('express-validator');
 const storeValidationRules = [
     body('ownerEmail').isEmail().notEmpty(),
     body('storeName').isString().notEmpty(),
-    body('storeAddress').isString().notEmpty(),
+    body('store_address').isString().notEmpty(),
     body('storeContact').isLength({ min: 11, max: 11 }).isNumeric().custom(value => value.startsWith('03')),
     body('storeType').isIn(['Pharmacy', 'Agricultural', 'Veteran']).notEmpty(),
     body('startTime').isString().notEmpty().custom((value, { req }) => {

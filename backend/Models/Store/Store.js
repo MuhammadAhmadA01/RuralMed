@@ -19,7 +19,7 @@ const { sequelize, DataTypes } = require("../../config/config");
       type:DataTypes.STRING,
       allowNull:false,
     },
-    storeAddress:{
+    store_address:{
       type: DataTypes.STRING,
       allowNull:false,
       unique:true
