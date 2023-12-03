@@ -100,12 +100,13 @@ const CustomerHomeScreen = ({ navigation }) => {
               .then((response) => response.json())
               .then((stores) => {
                 // Update the state with the fetched stores
+                if(stores.success){
                 const storeList = Array.isArray(stores)
                   ? stores
                   : Object.values(stores);
                 setOriginalStores(storeList[0]);
                 setFilteredStores(storeList[0]);
-              })
+          }})
               .catch((error) => {
                 console.error("Error fetching stores:", error);
               });
@@ -163,6 +164,7 @@ const CustomerHomeScreen = ({ navigation }) => {
     );
 
     setFilteredStores(filterStores);
+    console.log(filterStores)
   };
 
   const toggleMapView = () => {
@@ -429,7 +431,6 @@ const CustomerHomeScreen = ({ navigation }) => {
             ))
           ) : (
             <Text style={{ margin: "35%", fontWeight: "700" }}>
-              {" "}
               {!isLoading ? "No stores found" : "Loading stores..."}
             </Text>
           )}
