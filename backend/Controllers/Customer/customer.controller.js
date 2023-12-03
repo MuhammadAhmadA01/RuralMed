@@ -1,5 +1,15 @@
+const { Sequelize } = require("sequelize");
+const { sequelize, DataTypes } = require("../../config/config");
+const { Op, literal, fn, col } = require("sequelize");
+
+const Prescription = require("../../Models/Prescription/prescription");
 const Customers = require("../../Models/Customer/Customer");
 const prescription = require("../../Models/Prescription/prescription");
+const Product = require("../../Models/Product/products");
+const Orders = require("../../Models/Order/Order");
+const USER = require("../../Models/User/User");
+const Rider = require("../../Models/Rider/Rider");
+const Store = require("../../Models/Store/Store");
 const createCustomer = (req, res) => {
   const { cnic, email, deliveryFee } = req.body;
 
@@ -26,7 +36,7 @@ const createCustomer = (req, res) => {
       );
     })
     .then((newCustomer) => {
-      res.status(201).json(newCustomer);
+      res.status(201).json({ success: true, newCustomer });
     })
     .catch((error) => {
       console.error("Error creating customer:", error);
@@ -53,91 +63,6 @@ const createPrescription = (req, res) => {
       res.status(500).json({ error: "Internal Server Error" });
     });
 };
-const viewOrders = (req, res) => {
-  const { id } = req.params;
-
-  Orders.findAll({
-    where: {
-      customerID: id,
-    },
-  })
-    .then((orders) => {
-      res.status(200).json(orders);
-    })
-    .catch((error) => {
-      console.error("Error fetching orders:", error);
-      res.status(500).json({ error: "Internal Server Error" });
-    });
-};
-const viewProfile = (req, res) => {
-  const { email } = req.params;
-  // Retrieve customer record from the 'customers' table
-  Customers.findOne({
-    where: { email: email },
-    attributes: { exclude: ["id"] },
-  })
-    .then((customerRecord) => {
-      if (!customerRecord) {
-        return res
-          .status(404)
-          .json({ error: "Customer not found with this email." });
-      }
-
-      // Retrieve user record from the 'users' table
-      USER.findOne({
-        where: { email: email },
-        attributes: { exclude: ["password", "role"] },
-      })
-        .then((userRecord) => {
-          if (!userRecord) {
-            return res
-              .status(404)
-              .json({ error: "customer not found with this email." });
-          }
-
-          // Combine and send the response
-          const combinedResponse = {
-            customer: customerRecord.toJSON(),
-            user: userRecord.toJSON(),
-          };
-
-          res.status(200).json(combinedResponse);
-        })
-        .catch((error) => {
-          console.error("Error retrieving user record:", error);
-          res.status(500).json({ error: "Internal Server Error" });
-        });
-    })
-    .catch((error) => {
-      console.error("Error retrieving customer record:", error);
-      res.status(500).json({ error: "Internal Server Error" });
-    });
-};
-const viewPrescriptions = (req, res) => {
-  const { email } = req.params;
-
-  Prescription.findAll({
-    where: {
-      customerEmail: email,
-    },
-  })
-    .then((prescriptions) => {
-      if (prescriptions.length == 0)
-        throw {
-          status: 400,
-          message: "No Prescriptions exist against this user",
-        };
-      else res.status(200).json(prescriptions);
-    })
-    .catch((error) => {
-      console.error("Error creating customer:", error);
-      const status = error.status || 500;
-      res
-        .status(status)
-        .json({ error: error.message || "Internal Server Error" });
-    });
-};
-
 const placeOrder = (req, res) => {
   const {
     customerID,
@@ -224,6 +149,91 @@ const placeOrder = (req, res) => {
         .json({ error: error.message || "Internal Server Error" });
     });
 };
+const viewProfile = (req, res) => {
+  const { email } = req.params;
+  // Retrieve customer record from the 'customers' table
+  Customers.findOne({
+    where: { email: email },
+    attributes: { exclude: ["id"] },
+  })
+    .then((customerRecord) => {
+      if (!customerRecord) {
+        return res
+          .status(404)
+          .json({ error: "Customer not found with this email." });
+      }
+
+      // Retrieve user record from the 'users' table
+      USER.findOne({
+        where: { email: email },
+        attributes: { exclude: ["password", "role"] },
+      })
+        .then((userRecord) => {
+          if (!userRecord) {
+            return res
+              .status(404)
+              .json({ error: "customer not found with this email." });
+          }
+
+          // Combine and send the response
+          const combinedResponse = {
+            customer: customerRecord.toJSON(),
+            user: userRecord.toJSON(),
+          };
+
+          res.status(200).json(combinedResponse);
+        })
+        .catch((error) => {
+          console.error("Error retrieving user record:", error);
+          res.status(500).json({ error: "Internal Server Error" });
+        });
+    })
+    .catch((error) => {
+      console.error("Error retrieving customer record:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    });
+};
+const viewPrescriptions = (req, res) => {
+  const { email } = req.params;
+
+  Prescription.findAll({
+    where: {
+      customerEmail: email,
+    },
+  })
+    .then((prescriptions) => {
+      if (prescriptions.length == 0)
+        throw {
+          status: 400,
+          message: "No Prescriptions exist against this user",
+        };
+      else res.status(200).json(prescriptions);
+    })
+    .catch((error) => {
+      console.error("Error creating customer:", error);
+      const status = error.status || 500;
+      res
+        .status(status)
+        .json({ error: error.message || "Internal Server Error" });
+    });
+};
+
+const viewOrders = (req, res) => {
+  const { id } = req.params;
+
+  Orders.findAll({
+    where: {
+      customerID: id,
+    },
+  })
+    .then((orders) => {
+      res.status(200).json(orders);
+    })
+    .catch((error) => {
+      console.error("Error fetching orders:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    });
+};
 const getNearbyStoresForCustomers = async (req, res) => {
   const { email } = req.params;
   try {
@@ -256,41 +266,78 @@ const getNearbyStoresForCustomers = async (req, res) => {
       include: [],
     });
     const riderEmails = nearbyRiders.map((rider) => rider.email);
+    
     // Retrieve working areas of those riders from the Riders table
     const workingAreas = await Rider.findAll({
       attributes: ["workingArea"],
-      where: literal(`
-    email IN (${riderEmails.map((email) => `'${email}'`).join(",")})
-  `),
+      where: literal(` 
+      "availabilityStatus"='Online' AND
+      email IN (${riderEmails.map((email) => `'${email}'`).join(",")})
+      `),
     });
+    if(workingAreas.length<1)
+    return res.status(200).json({ success:false });
+
+    console.log(workingAreas)
     const response = workingAreas.map((rider) => rider.workingArea);
+    // Include a subquery to check for stores with at least one product in the products table
     const storeConditions = response
       .map((area) => {
         const [areaLng, areaLat] = area
           .split(",")
           .map((coord) => parseFloat(coord.trim()));
         return `
-      6371 * acos(cos(radians(${areaLat})) *  cos(radians(SPLIT_PART(store_address, ',', 2)::float8)) * cos(radians(SPLIT_PART(store_address, ',', 1)::float8) - radians(${areaLng})) + sin(radians(${areaLat})) * sin(radians(SPLIT_PART(store_address, ',', 2)::float8))) <= 3`;
+        6371 * acos(
+          cos(radians(${areaLat})) * cos(radians(SPLIT_PART(store_address, ',', 2)::float8)) *
+          cos(radians(SPLIT_PART(store_address, ',', 1)::float8) - radians(${areaLng})) +
+          sin(radians(${areaLat})) * sin(radians(SPLIT_PART(store_address, ',', 2)::float8))
+        ) <= 3
+      `;
       })
       .join(` OR `);
+
     const stores = await Store.findAll({
-      where: literal(storeConditions),
-      //  include: [],
+      // Add any additional attributes you need
+      where: literal(
+        `availability='Online' AND
+        ${storeConditions}`
+        ),
     });
-    return res.status(200).json({ stores });
+    
+    const storesWithProducts = await Promise.all(
+      stores.map(async (store) => {
+        const products = await Product.findOne({
+          where: {
+            storeId: store.storeID,
+          },
+          limit: 1, // Fetch only one product per store
+        });
+        if (products) {
+          return { ...store.toJSON() }; // Include all store attributes
+        }
+
+        return null; // Exclude stores without products
+      })
+    );
+
+    // Filter out null values (stores without products)
+    const filteredStores = storesWithProducts.filter((store) => store !== null);
+
+    // console.log(filteredStores)
+    return res.status(200).json({ stores: filteredStores, success:true });
   } catch (error) {
     console.error("Error fetching nearby stores:", error);
     return res
       .status(500)
-      .json({ error: "An error occurred while fetching nearby stores" });
+      .json({ error: "An error occurred while fetching nearby stores" ,success:false});
   }
 };
 module.exports = {
+  getNearbyStoresForCustomers,
   createCustomer,
   createPrescription,
-  viewOrders,
+  placeOrder,
   viewProfile,
   viewPrescriptions,
-  placeOrder,
-  getNearbyStoresForCustomers,
+  viewOrders,
 };
