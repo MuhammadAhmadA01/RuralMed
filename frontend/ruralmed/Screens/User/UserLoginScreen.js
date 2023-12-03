@@ -1,3 +1,4 @@
+import IP_ADDRESS from '../../config/config';
 import React, { useState,useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, Image } from 'react-native';
 import { styles } from '../styles/styles'; // Import your login screen styles here
@@ -8,31 +9,31 @@ const LoginScreen = ({ navigation }) => {
   useEffect(() => {
     checkAuthentication();
   }, []);
+  
   const checkAuthentication = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-
       if (token) {
         // Token exists, verify with the server
-        const response = await fetch('http://192.168.0.111:5000/verify-token', {
+        const response = await fetch(`http://${IP_ADDRESS}:5000/verify-token`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
             'x-auth-token': token,
           },
         });
-
+  
         const data = await response.json();
-        console.log(data.success)
         if (data.success) {
-          // Token is valid, navigate to the home screen
-          navigation.navigate('HomeCustomer');
-          Alert.alert('Session no Expired', 'Please login again');
-          
-        } else {
+          // Token is valid, get the role from AsyncStorage
+          const role = await AsyncStorage.getItem('role');
+  
+          // Navigate to the home screen with the role
+          navigation.navigate(`Home${role}`);
+           } else {
           // Token is not valid, show alert and stay on the login screen
           Alert.alert('Session Expired', 'Please login again');
-          AsyncStorage.removeItem('token')
+          AsyncStorage.removeItem('token');
         }
       }
     } catch (error) {
@@ -41,12 +42,12 @@ const LoginScreen = ({ navigation }) => {
       navigation.navigate('login');
     }
   };
-
+  
   const handleLogin = () => {
     // Perform login logic here
     // For example, you can make a fetch request to your backend with email and password
 
-    fetch('http://192.168.0.111:5000/login', {
+    fetch(`http://${IP_ADDRESS}:5000/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -57,11 +58,15 @@ const LoginScreen = ({ navigation }) => {
       .then(data => {
         if (data.success) {
           // Handle successful login
-          navigation.navigate('HomeCustomer');
+          Alert.alert('Login Successful', `Welcome back! ${data.role}`);
+   
+          navigation.navigate(`Home${data.role}`);
           
           AsyncStorage.setItem('token', data.token);
+          AsyncStorage.setItem('phone', phone);
+          AsyncStorage.setItem('role', data.role);
 
-          Alert.alert('Login Successful', `Welcome back! ${data.role}`);
+          
           // You might want to navigate to another screen upon successful login
           // navigation.navigate('Home'); // Uncomment and replace 'Home' with your desired screen
         } else {
