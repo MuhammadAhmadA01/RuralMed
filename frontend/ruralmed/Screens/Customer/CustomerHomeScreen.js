@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useSelector } from "react-redux";
 import { selectCartCount } from "../../Components/Cart/CartSelector";
@@ -27,7 +27,12 @@ import {
 import MapInputComponent from "../../Screens/MapView/MapInputComponent";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import IP_ADDRESS from "../../config/config";
+import { useDispatch } from "react-redux";
+import { addToCart, removeFromCart } from "../../Components/Cart/CartSlice";
+
 const CustomerHomeScreen = ({ navigation }) => {
+  const [cartCountInState, setCartCountInState] = useState(0);
+  const dispatch=useDispatch();
   const [menuVisible, setMenuVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isMapViewVisible, setMapViewVisible] = useState(false);
@@ -37,10 +42,14 @@ const CustomerHomeScreen = ({ navigation }) => {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [locationNames, setLocationNames] = useState({}); // New state to store location names
   const [isLoading, setIsLoading] = useState(true);
+  const [storesFound, setStoresFound] = useState(true);
+  const isFirstRender = useRef(true);
+
+  //
   const cartCount = useSelector(selectCartCount);
 
-  const [isDataLoading, setIsDataLoading] = useState(true); // New state to track data loading
-
+  const [isDataLoading, setIsDataLoading] = useState(false); // New state to track data loading
+  const [contactNumberCustomer,setContactNumber]=useState('');
   const [originalStores, setOriginalStores] = useState([]);
   const [filteredStores, setFilteredStores] = useState([]);
 
@@ -52,11 +61,13 @@ const CustomerHomeScreen = ({ navigation }) => {
           const [longitude, latitude] = store.store_address
             .split(",")
             .map(parseFloat);
+            var requestOptions = {
+              method: 'GET',
+            };            
           const response = await fetch(
-            `http://api.openweathermap.org/geo/1.0/reverse?lat=${latitude}&lon=${longitude}&appid=e2cfb1ff2fd149ac62ead8886fa7d4a1`
-          );
-          const data = await response.json();
-          const locationName = data[0]?.name || "Unknown";
+            `https://api.geoapify.com/v1/geocode/reverse?lat=${latitude}&lon=${longitude}&apiKey=0db7342727cf4b34a2e1e2dd6e964a8d`,requestOptions);
+            const data = await response.json();
+          const locationName = (data.features[0].properties.street)+","+(data.features[0].properties.district) || "Unknown";
           return locationName;
         });
 
@@ -64,11 +75,13 @@ const CustomerHomeScreen = ({ navigation }) => {
 
         setLocationNames(locationNameResults);
         setIsLoading(false);
-        setIsDataLoading(false);
+        setStoresFound(false);
       } catch (error) {
         console.error("Error fetching location names:", error);
         setIsLoading(false);
         setIsDataLoading(false);
+        setStoresFound(false);
+
       }
     };
 
@@ -89,8 +102,8 @@ const CustomerHomeScreen = ({ navigation }) => {
         })
           .then((response) => response.json())
           .then((data) => {
+            setContactNumber(contactNumber);
             // Use the email data as needed
-            console.log("Email data:", data.email);
             fetch(`http://${IP_ADDRESS}:5000/get-stores/${data.email}`, {
               method: "GET",
               headers: {
@@ -101,12 +114,19 @@ const CustomerHomeScreen = ({ navigation }) => {
               .then((stores) => {
                 // Update the state with the fetched stores
                 if(stores.success){
+                  const ridersData = stores.riders.join(',');
+                  AsyncStorage.setItem('riders',ridersData)
                 const storeList = Array.isArray(stores)
                   ? stores
                   : Object.values(stores);
                 setOriginalStores(storeList[0]);
                 setFilteredStores(storeList[0]);
-          }})
+          }
+          else 
+          {
+            setStoresFound(true);
+          }
+        })
               .catch((error) => {
                 console.error("Error fetching stores:", error);
               });
@@ -121,8 +141,31 @@ const CustomerHomeScreen = ({ navigation }) => {
 
     getContactEmail();
 
-    // ... (rest of the code)
   }, []);
+  useEffect(() => {
+    // Fetch cart details and update Redux store
+    const fetchCartDetails = async () => {
+      try {
+        const response = await fetch(`http://${IP_ADDRESS}:5000/get-cart/${contactNumberCustomer}`);
+        const data = await response.json();
+        if (data.success) { 
+          data.cartDetails.forEach(product => {
+            dispatch(addToCart(product));
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching cart details:", error);
+      }
+    };
+
+    if (!isFirstRender.current) {
+      fetchCartDetails();
+    } else {
+      isFirstRender.current = false;
+    }
+  
+  }, [contactNumberCustomer,isFirstRender]);
+ 
   useEffect(() => {
     // Add a back button listener to handle back key press
     const backHandler = BackHandler.addEventListener(
@@ -164,7 +207,7 @@ const CustomerHomeScreen = ({ navigation }) => {
     );
 
     setFilteredStores(filterStores);
-    console.log(filterStores)
+   
   };
 
   const toggleMapView = () => {
@@ -195,17 +238,15 @@ const CustomerHomeScreen = ({ navigation }) => {
   const handleLocationSelection = (coordinates) => {
     setSelectedLocation(coordinates);
     // setMapViewVisible(!isMapViewVisible)
-    console.log(selectedLocation);
+    
   };
   const handleStoreCardPress = async (store) => {
     try {
-      console.log(store.storeID);
       // Fetch all products for the selected store
       const response = await fetch(
         `http://${IP_ADDRESS}:5000/products/${store.storeID}`
       );
-      console.log(response);
-
+     
       if (!response.ok) {
         throw new Error(`Error fetching products for store ${store.storeID}`);
       }
@@ -290,19 +331,19 @@ const CustomerHomeScreen = ({ navigation }) => {
           <Appbar.Content title="RuralMed" style={{ alignItems: "center" }} />
         )}
         <Badge
-          visible={cartCount > 0}
-          size={23}
-          style={{
-            position: "absolute",
-            top: 8,
-            right: 8,
-            backgroundColor: "#25d366",
-            color: "black",
-          }}
-        >
-          {cartCount}
-        </Badge>
-        {!isMapViewVisible ? (
+        visible={cartCount > 0}
+        size={23}
+        style={{
+          position: "absolute",
+          top: 8,
+          right: 8,
+          backgroundColor: "#25d366",
+          color: "black",
+        }}
+      >
+        {cartCount}
+      </Badge>
+ {!isMapViewVisible ? (
           <Appbar.Action
             icon="bell"
             onPress={() => console.log("notifications pressed")}
@@ -431,7 +472,7 @@ const CustomerHomeScreen = ({ navigation }) => {
             ))
           ) : (
             <Text style={{ margin: "35%", fontWeight: "700" }}>
-              {!isLoading ? "No stores found" : "Loading stores..."}
+              {storesFound ? "No stores found" : "Loading stores..."}
             </Text>
           )}
         </ScrollView>
