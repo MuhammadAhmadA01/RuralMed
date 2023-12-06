@@ -269,7 +269,7 @@ const getNearbyStoresForCustomers = async (req, res) => {
     
     // Retrieve working areas of those riders from the Riders table
     const workingAreas = await Rider.findAll({
-      attributes: ["workingArea"],
+      attributes: ["workingArea",'email'],
       where: literal(` 
       "availabilityStatus"='Online' AND
       email IN (${riderEmails.map((email) => `'${email}'`).join(",")})
@@ -277,8 +277,7 @@ const getNearbyStoresForCustomers = async (req, res) => {
     });
     if(workingAreas.length<1)
     return res.status(200).json({ success:false });
-
-    console.log(workingAreas)
+    const responseEmails = workingAreas.map((rider) => rider.email);
     const response = workingAreas.map((rider) => rider.workingArea);
     // Include a subquery to check for stores with at least one product in the products table
     const storeConditions = response
@@ -290,8 +289,7 @@ const getNearbyStoresForCustomers = async (req, res) => {
         6371 * acos(
           cos(radians(${areaLat})) * cos(radians(SPLIT_PART(store_address, ',', 2)::float8)) *
           cos(radians(SPLIT_PART(store_address, ',', 1)::float8) - radians(${areaLng})) +
-          sin(radians(${areaLat})) * sin(radians(SPLIT_PART(store_address, ',', 2)::float8))
-        ) <= 3
+          sin(radians(${areaLat})) * sin(radians(SPLIT_PART(store_address, ',', 2)::float8))) <= 3
       `;
       })
       .join(` OR `);
@@ -303,7 +301,6 @@ const getNearbyStoresForCustomers = async (req, res) => {
         ${storeConditions}`
         ),
     });
-    
     const storesWithProducts = await Promise.all(
       stores.map(async (store) => {
         const products = await Product.findOne({
@@ -323,8 +320,7 @@ const getNearbyStoresForCustomers = async (req, res) => {
     // Filter out null values (stores without products)
     const filteredStores = storesWithProducts.filter((store) => store !== null);
 
-    // console.log(filteredStores)
-    return res.status(200).json({ stores: filteredStores, success:true });
+    return res.status(200).json({ stores: filteredStores, success:true, riders:riderEmails });
   } catch (error) {
     console.error("Error fetching nearby stores:", error);
     return res
