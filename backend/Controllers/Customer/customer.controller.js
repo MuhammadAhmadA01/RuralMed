@@ -328,6 +328,38 @@ const getNearbyStoresForCustomers = async (req, res) => {
       .json({ error: "An error occurred while fetching nearby stores" ,success:false});
   }
 };
+const calculateRiderDistance=async(req,res)=>{
+  try {
+    const { riderEmail, storeLat, storeLng } = req.params;
+    // Fetch the rider's working area from the database
+    const rider = await Rider.findOne({
+      attributes: ['workingArea', 'deliveryFee'],
+      where: { email: riderEmail },
+    });
+    if (!rider) {
+      return res.status(404).json({ error: 'Rider not found' });
+    }
+    const [longitude, latitude] = rider.workingArea
+    .split(",")
+    .map(parseFloat);
+    // Use Sequelize.literal to include raw SQL in the query
+    
+    // Execute the raw SQL query to calculate the distance
+    const result = await sequelize.query(
+      `SELECT 6371 * acos(cos(radians(${storeLat})) * cos(radians(SPLIT_PART("workingArea", ',', 2)::float8)) *cos(radians(SPLIT_PART("workingArea", ',', 1)::float8) - radians(${storeLng})) +sin(radians(${storeLat})) * sin(radians(SPLIT_PART("workingArea", ',', 2)::float8))) as distance FROM riders WHERE email = :riderEmail`,
+      {
+        replacements: { riderEmail },
+        type: Sequelize.QueryTypes.SELECT,
+      }
+    );
+    const distance = result && result[0] && result[0].distance;
+     return res.json({ distance, fee:rider.deliveryFee });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+
 module.exports = {
   getNearbyStoresForCustomers,
   createCustomer,
@@ -336,4 +368,5 @@ module.exports = {
   viewProfile,
   viewPrescriptions,
   viewOrders,
+  calculateRiderDistance
 };
