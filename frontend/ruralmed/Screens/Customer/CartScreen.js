@@ -1,5 +1,4 @@
-// CartScreen.js
-
+import IP_ADDRESS from "../../config/config";
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -8,6 +7,7 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
+  Alert,
 } from "react-native";
 import { Appbar, Button, Title } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
@@ -15,15 +15,39 @@ import {
   removeFromCart,
   updateCartItemQuantity,
 } from "../../Components/Cart/CartSlice";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const CartScreen = ({ navigation }) => {
+const CartScreen = ({ navigation, route }) => {
   const dispatch = useDispatch();
+  const {contactNum}=route.params
   const cartItems = useSelector((state) => state.cart.cartItems);
   const [localQuantities, setLocalQuantities] = useState({});
+  const [phoneNum,setPhoneNum]=useState('')
+  useEffect(()=>{
+    const fetchPhone=async()=>{
+      const phone= await AsyncStorage.getItem('phone');
+      setPhoneNum(phone);
+    }
+    fetchPhone();
+  },[cartItems])
+  const handleRemoveItem = async (productID) => {
+    const apiEndpoint2 = `http://${IP_ADDRESS}:5000/remove-from-cart/${productID}/${contactNum}`;
+   
+    try {
+      // Make API call
+      const response = await fetch(apiEndpoint2)
+      if (response.ok) {
+        // If the API call is successful, dispatch the action to update the Redux store
+        dispatch(removeFromCart(productID));
+      } else {
+        console.error("Remove from cart API call failed", response);
+      }
+    } catch (error) {
+      console.error("Remove from cart API call failed with an exception:", error);
+    }
+  }
 
-  const handleRemoveItem = (productID) => {
-    dispatch(removeFromCart(productID));
-  };
+
   useEffect(() => {
     // Update local quantities when cartItems change
     const quantities = {};
@@ -32,12 +56,44 @@ const CartScreen = ({ navigation }) => {
     });
     setLocalQuantities(quantities);
   }, [cartItems]);
-  const handleQuantityChange = (productID, change) => {
-    const item = cartItems.find((item) => item.productID === productID);
+  const handleQuantityChange =async (product, change) => {
+    const item = cartItems.find((item) => item.productID === product.productID);
     if (item) {
-      console.log(change);
-      dispatch(updateCartItemQuantity({ productID, change }));
+      if(change>0)
+      {
+        const res=await fetch(`http://${IP_ADDRESS}:5000/add-to-cart`,{
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            customerContact: phoneNum,
+            product,
+          }),
+        });
+        if(res.status===404)
+        {
+          Alert.alert('Limti exceeds', 'Your quantity exceeds the available quantity')
+          return;
+        }
+        else
+        dispatch(updateCartItemQuantity({ productID:product.productID, change }));  
+      }   
+      else {
+        try {
+          // Make a fetch call to update the quantity
+          const updateQuantityEndpoint = `http://${IP_ADDRESS}:5000/update-qty/${contactNum}/${product.productID}`;
+      
+          const updateResponse = await fetch(updateQuantityEndpoint);
+          const minusRes=await updateResponse.json();
+          dispatch(updateCartItemQuantity({ productID:product.productID, change }));
+      
+        } catch (error) {
+          console.error('Quantity update failed with an exception:', error);
+        }
+      }
     }
+
   };
 
   const calculateSubtotal = () => {
@@ -50,6 +106,7 @@ const CartScreen = ({ navigation }) => {
 
   const handleCheckout = () => {
     // Perform checkout logic
+    navigation.navigate('PlaceOrderScreen',{customerContact:contactNum})
     console.log("checkout pressed");
   };
 
@@ -85,7 +142,7 @@ const CartScreen = ({ navigation }) => {
           <View style={styles.emptyCartContainer}>
             <Text style={styles.emptyCartText}>Empty cart</Text>
             <TouchableOpacity
-              onPress={() => navigation.navigate("CustomerHome")}
+              onPress={() => navigation.navigate("HomeCustomer")}
             >
               <Text style={styles.browseStoresText}>Browse to Stores</Text>
             </TouchableOpacity>
@@ -99,7 +156,7 @@ const CartScreen = ({ navigation }) => {
                 <TouchableOpacity
                   onPress={() =>
                     item.quantity > 1 &&
-                    handleQuantityChange(item.productID, -1)
+                    handleQuantityChange(item, -1)
                   }
                   style={item.quantity === 1 ? styles.disabledButton : null}
                   disabled={item.quantity === 1}
@@ -110,13 +167,15 @@ const CartScreen = ({ navigation }) => {
                   {localQuantities[item.productID]}
                 </Text>
                 <TouchableOpacity
-                  onPress={() => handleQuantityChange(item.productID, 1)}
+                  onPress={() => handleQuantityChange(item, 1)}
                 >
                   <Text style={styles.quantityButton}>+</Text>
                 </TouchableOpacity>
               </View>
               <TouchableOpacity
-                onPress={() => handleRemoveItem(item.productID)}
+                onPress={() => 
+                  {
+                  handleRemoveItem(item.productID)}}
               >
                 <Text style={styles.removeButton}>Remove</Text>
               </TouchableOpacity>

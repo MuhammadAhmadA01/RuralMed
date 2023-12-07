@@ -28,7 +28,7 @@ import MapInputComponent from "../../Screens/MapView/MapInputComponent";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import IP_ADDRESS from "../../config/config";
 import { useDispatch } from "react-redux";
-import { addToCart, removeFromCart } from "../../Components/Cart/CartSlice";
+import { addToCart, clearCart, removeFromCart } from "../../Components/Cart/CartSlice";
 
 const CustomerHomeScreen = ({ navigation }) => {
   const [cartCountInState, setCartCountInState] = useState(0);
@@ -148,8 +148,10 @@ const CustomerHomeScreen = ({ navigation }) => {
       try {
         const response = await fetch(`http://${IP_ADDRESS}:5000/get-cart/${contactNumberCustomer}`);
         const data = await response.json();
+        console.log(data)
         if (data.success) { 
           data.cartDetails.forEach(product => {
+            console.log(product)
             dispatch(addToCart(product));
           });
         }
@@ -252,9 +254,8 @@ const CustomerHomeScreen = ({ navigation }) => {
       }
 
       const products = await response.json();
-
       // Navigate to the StoreDetailsScreen with the selected store data and products
-      navigation.navigate("StoreDetails", { store, products });
+      navigation.navigate("StoreDetails", { store, products, contactNum:contactNumberCustomer });
     } catch (error) {
       console.error("Error in handleStoreCardPress:", error);
       // Handle the error as needed (e.g., show an error message to the user)
@@ -305,10 +306,15 @@ const CustomerHomeScreen = ({ navigation }) => {
           />
           <Menu.Item
             style={{ alignItems: "center", paddingLeft: "17%" }}
-            onPress={() => {
+            onPress={async () => {
               setMenuVisible(false);
-              AsyncStorage.removeItem("token");
+              await AsyncStorage.removeItem("token");
+              await AsyncStorage.removeItem("role");
+              await AsyncStorage.removeItem("phone");
+              
+              dispatch(clearCart())
               navigation.navigate("login");
+
             }}
             title="Logout"
           />
@@ -353,7 +359,7 @@ const CustomerHomeScreen = ({ navigation }) => {
         )}
         <Appbar.Action
           icon="cart"
-          onPress={() => navigation.navigate("CartScreen")}
+          onPress={() => navigation.navigate("CartScreen",{contactNum: contactNumberCustomer})}
         />
       </Appbar.Header>
 
@@ -433,7 +439,14 @@ const CustomerHomeScreen = ({ navigation }) => {
             filteredStores.map((store, index) => (
               <TouchableOpacity
                 key={store.storeID}
-                onPress={() => handleStoreCardPress(store)}
+                onPress={() =>
+                  
+                  {
+                    handleStoreCardPress(store)
+                  
+                  }
+                  
+                  }
               >
                 <Card
                   key={store.storeID}
