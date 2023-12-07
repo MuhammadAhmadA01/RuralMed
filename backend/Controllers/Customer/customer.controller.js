@@ -536,3 +536,4 @@ module.exports = {
   addToCart,
   deleteCartItem
 };
+//Added cart functionality
