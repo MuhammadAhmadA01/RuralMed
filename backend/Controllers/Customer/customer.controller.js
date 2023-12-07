@@ -1,7 +1,7 @@
-const { Sequelize } = require("sequelize");
+const { Sequelize,QueryTypes } = require("sequelize");
 const { sequelize, DataTypes } = require("../../config/config");
 const { Op, literal, fn, col } = require("sequelize");
-
+const Cart= require('../../Models/Cart/Cart')
 const Prescription = require("../../Models/Prescription/prescription");
 const Customers = require("../../Models/Customer/Customer");
 const prescription = require("../../Models/Prescription/prescription");
@@ -333,7 +333,7 @@ const calculateRiderDistance=async(req,res)=>{
     const { riderEmail, storeLat, storeLng } = req.params;
     // Fetch the rider's working area from the database
     const rider = await Rider.findOne({
-      attributes: ['workingArea', 'deliveryFee'],
+      attributes: ['workingArea', 'deliveryFee','riderID'],
       where: { email: riderEmail },
     });
     if (!rider) {
@@ -353,14 +353,178 @@ const calculateRiderDistance=async(req,res)=>{
       }
     );
     const distance = result && result[0] && result[0].distance;
-     return res.json({ distance, fee:rider.deliveryFee });
+     return res.json({ distance, fee:rider.deliveryFee, riderId:rider.riderID });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 }
+const getCartByCustomerContact = (req, res) => {
+  const { customer_contact } = req.params;
 
+  Cart.findOne({
+    where: { customer_contact: customer_contact },
+  })
+    .then((cart) => {
+      if (!cart) {
+        return res.status(404).json({ error: 'Cart not found for the customer', success:false });
+      }
+      console.log(cart)
+      const cartDetails = cart.cart_details;
+      console.log(cartDetails)
+      return res.status(200).json({cartDetails,success:true});
+    })
+    .catch((error) => {
+      console.error(error);
+      return res.status(500).json({ error: 'Internal server error',success:false });
+    });
+};
+const addToCart = (req, res) => {
+  const { customerContact, product } = req.body;
+  Cart.findOrCreate({
+    where: { customer_contact: customerContact },
+  })
+    .then(([cart]) => {
+      // Check if the product is already in the cart
+      const existingProduct = cart.cart_details.find(
+        (item) => item.productID === product.productID
+      );
+      if (existingProduct) {
+        // Product is already in the cart, increase the quantity
+        if (existingProduct.quantity < product.availableQuantity) {
+          existingProduct.quantity += 1;
+        } else {
+          throw { status: 400, message: "Limit exceeds" };
+        }
+      } else {
+        // Product is not in the cart, add it
+        if (product.availableQuantity > 0) {
+          cart.cart_details.push({
+            ...product,
+            quantity: 1,
+          });
+        } else {
+          throw new Error('Product not available');
+        }
+      }
+
+      // Update the cart with the modified cart_details
+      return Cart.update(
+        { cart_details: cart.cart_details },
+        { where: { customer_contact: customerContact } }
+      );
+    })
+    .then(() => {
+      // Handle success, e.g., send response
+      res.status(200).json({ message: 'Product added to cart successfully' });
+    })
+    .catch((error) => {
+      // Handle error, e.g., send error response
+      console.error(error);
+      res
+        .status(404)
+        .json({ error: error.message || "Internal Server Error" });
+
+    });
+};
+const removeFromCart = (req, res) => {
+  const { productID, customerContact } = req.params;
+  console.log(productID,customerContact)
+  Cart.findOne({
+    where: { customer_contact: customerContact },
+  })
+    .then((cart) => {
+      if (!cart) {
+        throw new Error('Cart not found');
+      }
+      console.log(cart.cart_details)
+      // Find the index of the product in the cart's productArray
+      const productIndex = cart.cart_details.findIndex(
+        (item) =>  item.productID === parseInt(productID)
+        
+      );
+        console.log(productIndex)
+      if (productIndex !== -1) {
+        // Remove the product from the productArray
+        cart.cart_details.splice(productIndex, 1);
+
+        // Update the cart with the modified productArray using the update query
+        return Cart.update(
+          { cart_details: cart.cart_details },
+          { where: { customer_contact: customerContact } }
+        ).then(()=>{});
+      }
+       else {
+        throw new Error('Product not found in cart');
+      }
+    })
+    .then(() => {
+      return res.status(200).json({ message: 'Product removed from cart successfully', success:true });
+    })
+    .catch((error) => {
+      console.error(error);
+      return res.status(500).json({ error: 'Internal server error', success:false });
+    });
+};
+const updateQuantity = async (req, res) => {
+  try {
+    const { customer_contact, productID } = req.params;
+
+    // Find the cart of the customer using the customer_contact
+    const cart = await Cart.findOne({ where: { customer_contact } });
+    console.log(cart)
+    if (!cart) {
+      return res.status(404).json({ error: 'Cart not found for the customer' });
+    }
+
+    // Find the product in the cart's productArray
+    const productIndex = cart.cart_details.findIndex(item => item.productID === parseInt(productID));
+    console.log(productIndex)
+    if (productIndex !== -1) {
+      // Decrease the quantity by 1
+      cart.cart_details[productIndex].quantity= cart.cart_details[productIndex].quantity - 1;
+
+      // If the updated quantity is zero, you might want to remove the product from the array
+        // Update the quantity directly using the update query
+        console.log(cart.cart_details[productIndex].quantity)
+        const updatedCart=await Cart.update(
+          { cart_details: cart.cart_details },
+          { where: { customer_contact } }
+        );  console.log(updatedCart)
+
+      return res.status(200).json({ message: 'Quantity updated successfully' });
+    } else {
+      return res.status(404).json({ error: 'Product not found in the cart' });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+const deleteCartItem = async (req, res) => {
+  const { customer_contact } = req.params;
+
+  try {
+    // Find and delete the cart item based on customer_contact
+    const deletedCartItem = await Cart.destroy(
+      { 
+        where:{customer_contact} }
+      );
+
+    if (!deletedCartItem) {
+      return res.status(404).json({ message: 'Cart item not found for the provided customer contact.',success:false });
+    }
+
+    return res.status(200).json({ message: 'Cart item deleted successfully.' ,success:true});
+  } catch (error) {
+    console.error('Error deleting cart item:', error);
+    return res.status(500).json({ message: 'Internal server error' ,success:false});
+  }
+};
 module.exports = {
+  updateQuantity,
+  removeFromCart,
+  getCartByCustomerContact,
   getNearbyStoresForCustomers,
   createCustomer,
   createPrescription,
@@ -368,5 +532,7 @@ module.exports = {
   viewProfile,
   viewPrescriptions,
   viewOrders,
-  calculateRiderDistance
+  calculateRiderDistance,
+  addToCart,
+  deleteCartItem
 };
