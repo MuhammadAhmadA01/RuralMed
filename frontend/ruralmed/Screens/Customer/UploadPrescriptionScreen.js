@@ -49,7 +49,6 @@ const UploadPrescriptionScreen = ({ navigation, route }) => {
         }
       })
       .catch((error) => {
-        console.error("Error during image selection:", error.message);
         Alert.alert(
           "Error",
           "An error occurred during image selection. Please try again."
