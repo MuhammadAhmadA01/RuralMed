@@ -10,7 +10,7 @@ import {
   ScrollView,
   Alert,
 } from "react-native";
-import {  Title, RadioButton } from "react-native-paper";
+import { Title, RadioButton } from "react-native-paper";
 import MapComponent from "../MapView/MapInputComponent";
 import TimePicker from "../../Components/TimePicker";
 import { styles } from "../styles/styles";
@@ -24,19 +24,19 @@ const StoreScreen = ({ navigation }) => {
   const [storeAvailability, setStoreAvailability] = useState("");
   const [errorMessages, setErrorMessages] = useState({});
   const [selectedLocation, setSelectedLocation] = useState(null);
-  const [email,setOwnerEmail]=useState('');  
-  const[contactNumAsync,setContactNumAsync]=useState('')
-  useEffect(()=>{
-    AsyncStorage.getItem('phone').then((phoneNumber) => {
-      setContactNumAsync(phoneNumber)
-    
-      // Now you can use contactNum here or within the callback
-      }).catch((error) => {
-      console.error('Error fetching contact number:', error);
-    });
+  const [email, setOwnerEmail] = useState("");
+  const [contactNumAsync, setContactNumAsync] = useState("");
+  useEffect(() => {
+    AsyncStorage.getItem("phone")
+      .then((phoneNumber) => {
+        setContactNumAsync(phoneNumber);
 
-
-  },[])
+        // Now you can use contactNum here or within the callback
+      })
+      .catch((error) => {
+        console.error("Error fetching contact number:", error);
+      });
+  }, []);
   const handleLocationSelection = (coordinates) => {
     setSelectedLocation(coordinates);
   };
@@ -58,7 +58,7 @@ const StoreScreen = ({ navigation }) => {
 
     return formattedTime;
   };
-const validateField = (fieldName, value, regex) => {
+  const validateField = (fieldName, value, regex) => {
     const errors = { ...errorMessages };
 
     if (!value.trim() || !regex.test(value)) {
@@ -122,83 +122,81 @@ const validateField = (fieldName, value, regex) => {
 
     setErrorMessages(errors);
     if (Object.keys(errors).length === 0) {
-        // No errors, proceed with API calls
-        // Fetching email based on contact number
-        fetch(`http://${IP_ADDRESS}:5000/get-email`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            contactNumber:contactNumAsync 
-          }),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.email) {
-              // Email obtained, proceed with the second API call
-              setOwnerEmail(data.email)
-              console.log("aimmi")
-              console.log(email)
-              const lat=selectedLocation.latitude;
-              const long=selectedLocation.longitude;
-             
-    
-              fetch(`http://${IP_ADDRESS}:5000/add-store`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  ownerEmail:data.email,
-                  storeName,
-                  store_address: `${long},${lat}`,
-                  storeContact,
-                  storeType,
-                  startTime: selectedStartTime,
-                  endTime: selectedEndTime,
-                  availability: storeAvailability,
-                }),
+      // No errors, proceed with API calls
+      // Fetching email based on contact number
+      fetch(`http://${IP_ADDRESS}:5000/get-email`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contactNumber: contactNumAsync,
+        }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.email) {
+            // Email obtained, proceed with the second API call
+            setOwnerEmail(data.email);
+            const lat = selectedLocation.latitude;
+            const long = selectedLocation.longitude;
+
+            fetch(`http://${IP_ADDRESS}:5000/add-store`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                ownerEmail: data.email,
+                storeName,
+                store_address: `${long},${lat}`,
+                storeContact,
+                storeType,
+                startTime: selectedStartTime,
+                endTime: selectedEndTime,
+                availability: storeAvailability,
+              }),
+            })
+              .then((response) => response.json())
+              .then((result) => {
+                if (result.success) {
+                  Alert.alert("Success", "Store created successfully");
+                  navigation.replace("HomeOwner");
+                } else {
+                  console.log("error in creating store", result.errors);
+                }
               })
-                .then((response) => response.json())
-                .then((result) => {
-                  console.log(result)
-                    if(result.success)
-                    {
-                      Alert.alert('Success', 'Store created successfully');
-                  navigation.navigate('HomeOwner');
-                    }
-                    else{
-                        console.log("error in creating store", result.errors)
-                    }
-                })
-                .catch((error) => {
-                  console.error('Error creating store:', error);
-                  Alert.alert('Error', 'Failed to create store. Please try again.');
-                });
-            } else {
-              // No email found for the given contact number
-              Alert.alert('Error', 'No user found with the provided contact number.');
-            }
-          })
-          .catch((error) => {
-            console.error('Error fetching email by contactNumber:', error);
-            Alert.alert('Error', 'Failed to fetch email. Please try again.');
-          });
-      } else {
-        // Display validation errors
-        let errorMessage = 'Please fill in all required fields:\n';
-        Object.values(errors).forEach((error) => {
-          errorMessage += `- ${error}\n`;
+              .catch((error) => {
+                console.error("Error creating store:", error);
+                Alert.alert(
+                  "Error",
+                  "Failed to create store. Please try again."
+                );
+              });
+          } else {
+            // No email found for the given contact number
+            Alert.alert(
+              "Error",
+              "No user found with the provided contact number."
+            );
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching email by contactNumber:", error);
+          Alert.alert("Error", "Failed to fetch email. Please try again.");
         });
-        Alert.alert('Validation Error', errorMessage);
-      }
-    };
+    } else {
+      // Display validation errors
+      let errorMessage = "Please fill in all required fields:\n";
+      Object.values(errors).forEach((error) => {
+        errorMessage += `- ${error}\n`;
+      });
+      Alert.alert("Validation Error", errorMessage);
+    }
+  };
   return (
     <View style={{ flex: 1 }}>
-<AppHeader
-        navigation={navigation}
-      />
+      <AppHeader navigation={navigation} />
       <ScrollView contentContainerStyle={styles.container}>
         <Title style={{ textAlign: "center" }}>Create The store</Title>
         {errorMessages.storeName && (

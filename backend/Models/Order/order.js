@@ -9,7 +9,7 @@ const Orders = sequelize.define("orders", {
     allowNull: false,
   },
   customerID: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.STRING,
     allowNull: false,
   },
   dateOfOrder: {
@@ -17,11 +17,11 @@ const Orders = sequelize.define("orders", {
     defaultValue: DataTypes.NOW,
   },
   riderId: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.STRING,
     allowNull: false,
   },
   ownerId: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.STRING,
     allowNull: false,
   },
   shippingCharges: {
@@ -32,6 +32,11 @@ const Orders = sequelize.define("orders", {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
+  storeId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+
   orderStatus: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -40,6 +45,11 @@ const Orders = sequelize.define("orders", {
   isPrescription: {
     type: DataTypes.BOOLEAN,
     allowNull: false,
+    defaultValue: false,
+  },
+  isIdentityHidden: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
   },
   orderDetails: {
     type: DataTypes.JSONB, // Use JSONB for array of objects

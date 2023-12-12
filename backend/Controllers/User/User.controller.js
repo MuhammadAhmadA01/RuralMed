@@ -1,23 +1,22 @@
-const { Op } = require('sequelize');
-const Product=require('../../Models/Product/products')
-const Prescription=require('../../Models/Prescription/prescription')
+const { Op } = require("sequelize");
+const Product = require("../../Models/Product/products");
+const Prescription = require("../../Models/Prescription/prescription");
 const User = require("../../Models/User/User");
-const jwt = require('jsonwebtoken');
-const Notifications=require('../../Models/Notifications/Notification')
+const jwt = require("jsonwebtoken");
+const Notifications = require("../../Models/Notifications/Notification");
 const bcrypt = require("bcrypt");
-const cloudinary=require('../../config/cloudinary')
-const Order=require('../../Models/Order/Order')
+const cloudinary = require("../../config/cloudinary");
+const Order = require("../../Models/Order/Order");
 const loginController = (req, res) => {
   const { contactNumber, password } = req.body;
 
   User.findOne({ where: { contactNumber } })
-  .then((user) => {
-    if (!user) {
-      throw { status: 400, message: "Invalid credentials" };
-    }
+    .then((user) => {
+      if (!user) {
+        throw { status: 400, message: "Invalid credentials" };
+      }
 
-    return bcrypt.compare(password, user.password)
-      .then((isPasswordValid) => {
+      return bcrypt.compare(password, user.password).then((isPasswordValid) => {
         if (!isPasswordValid) {
           throw { status: 400, message: "Invalid credentials" };
         }
@@ -27,15 +26,17 @@ const loginController = (req, res) => {
           message: "Login successful",
           success: true,
           role: user.role,
-          token
+          token,
         });
       });
-  })
-  .catch((error) => {
-    console.error("Error while login:", error);
-    const status = error.status || 500;
-    res.status(status).json({ error: error.message || "Internal Server Error" });
-  });
+    })
+    .catch((error) => {
+      console.error("Error while login:", error);
+      const status = error.status || 500;
+      res
+        .status(status)
+        .json({ error: error.message || "Internal Server Error" });
+    });
 };
 const getOrderById = async (req, res) => {
   try {
@@ -49,13 +50,13 @@ const getOrderById = async (req, res) => {
     });
 
     if (!order) {
-      return res.status(404).json({ error: 'Order not found' });
+      return res.status(404).json({ error: "Order not found" });
     }
 
     return res.status(200).json({ order });
   } catch (error) {
-    console.error('Error retrieving order:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error retrieving order:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
@@ -99,12 +100,11 @@ const signupController = (req, res) => {
         address,
         cityNearBy,
         role,
-        picture:"0"
+        picture: "0",
       });
     })
     .then((newUser) => {
-      console.log(newUser)
-      res.status(201).json({success:true, newUser});
+      res.status(201).json({ success: true, newUser });
     })
     .catch((error) => {
       console.error("Error creating user:", error);
@@ -144,13 +144,12 @@ const validateUserDataController = (req, res) => {
 };
 
 const uploadProfile = (req, res) => {
-  console.log(req.body)
   cloudinary.uploader
     .upload(req.file.path, {
       public_id: `${req.body.email}_profile`,
       width: 500,
       height: 500,
-      crop: 'fill',
+      crop: "fill",
     })
     .then((result) => {
       // Update user with the profile picture URL
@@ -165,22 +164,25 @@ const uploadProfile = (req, res) => {
     })
     .then(() => {
       // The user has been successfully updated
-      res.status(200).json({ success: true, message: 'Profile picture uploaded successfully' });
+      res.status(200).json({
+        success: true,
+        message: "Profile picture uploaded successfully",
+      });
     })
     .catch((err) => {
       // Handle any errors that occurred during the process
-      console.log('Error while updating profile picture', err);
-      res.status(500).json({ success: false, message: 'Server error, try after some time' });
+      res
+        .status(500)
+        .json({ success: false, message: "Server error, try after some time" });
     });
 };
 const uploadPrescription = (req, res) => {
-  console.log(req.body);
   cloudinary.uploader
     .upload(req.file.path, {
       public_id: `${req.body.email}_prescription`,
       width: 500,
       height: 500,
-      crop: 'fill',
+      crop: "fill",
     })
     .then((result) => {
       // Create a new record in the Prescription table
@@ -194,20 +196,17 @@ const uploadPrescription = (req, res) => {
       // The prescription has been successfully added
       res.status(200).json({
         success: true,
-        message: 'Prescription uploaded successfully',
+        message: "Prescription uploaded successfully",
         link: data.picture,
       });
     })
     .catch((err) => {
       // Handle any errors that occurred during the process
-      console.log('Error while uploading prescription', err);
       res
         .status(500)
-        .json({ success: false, message: 'Server error, try after some time' });
+        .json({ success: false, message: "Server error, try after some time" });
     });
 };
-
-
 
 const generateToken = (user) => {
   const payload = {
@@ -216,51 +215,49 @@ const generateToken = (user) => {
     // Add other user-related data to the payload if needed
   };
   // Set the expiration time as desired (e.g., 1 day)
-  const expiresIn = '1d';
+  const expiresIn = "1d";
 
   // Sign the token with a secret key
-  const token = jwt.sign(payload, 'ruralMed', { expiresIn });
-  console.log(token)
+  const token = jwt.sign(payload, "ruralMed", { expiresIn });
   return token;
 };
 const getUserEmailByContactNumber = (req, res) => {
   const { contactNumber } = req.body;
-  console.log(contactNumber)
   // Find the user with the provided contactNumber
   User.findOne({
     where: {
-       contactNumber,
+      contactNumber,
     },
   })
     .then((user) => {
       if (user) {
         res.status(200).json({ email: user.email });
       } else {
-        res.status(404).json({ error: 'User not found with the provided contactNumber' });
+        res
+          .status(404)
+          .json({ error: "User not found with the provided contactNumber" });
       }
     })
     .catch((error) => {
-      console.error('Error fetching email by contactNumber:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      console.error("Error fetching email by contactNumber:", error);
+      res.status(500).json({ error: "Internal Server Error" });
     });
 };
 const getUserProfile = async (req, res) => {
   try {
-    const {userEmail} = req.params;
-    console.log(userEmail)
+    const { userEmail } = req.params;
     // Assuming you have a User model with a method to find a user by email
-    const user = await User.findOne({where:{ email: userEmail }});
+    const user = await User.findOne({ where: { email: userEmail } });
 
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     // Extract relevant user profile information
-    console.log(user)
     res.status(200).json(user);
   } catch (error) {
-    console.error('Error getting user profile:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error getting user profile:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -269,8 +266,8 @@ const createNotification = async (req, res) => {
     const notification = await Notifications.create(req.body);
     res.status(201).json(notification);
   } catch (error) {
-    console.error('Error creating notification:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error creating notification:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 const getNotifications = async (req, res) => {
@@ -279,74 +276,77 @@ const getNotifications = async (req, res) => {
 
     // Fetch notifications based on the provided email and role
     const notifications = await Notifications.findAll({
-        where: {
-          [Op.or]: [
-            { riderId: email },
-            { ownerId: email },
-            { customerId: email },
-          ],
-        },
-      });
-  
+      where: {
+        [Op.or]: [
+          { riderId: email },
+          { ownerId: email },
+          { customerId: email },
+        ],
+      },
+    });
+
     // Update isOpenedBy for the fetched notifications
-    
+
     return res.status(200).json(notifications);
   } catch (error) {
-    console.error('Error fetching and updating notifications:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error fetching and updating notifications:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
 const updateNotifications = async (req, res) => {
   try {
     const { email, role } = req.params;
     // Fetch notifications based on the provided email and role
-    const notifications = 
+    const notifications =
+      // Update isOpenedBy for the fetched notifications
+      await Notifications.update(
+        { [`isOpenedBy${role}`]: true },
+        {
+          where: {
+            [Op.and]: [
+              { [`${role.toLowerCase()}Id`]: email },
+              { [`isOpenedBy${role}`]: false },
+            ],
+          },
+        }
+      );
 
-    // Update isOpenedBy for the fetched notifications
-    await Notifications.update(
-      { [`isOpenedBy${role}`]: true },
-      {
-        where: {
-          [Op.and]: [
-            { [`${role.toLowerCase()}Id`]: email },
-            { [`isOpenedBy${role}`]: false },
-          ],
-        },
-      }
-    );
-
-    return res.status(200).json({success:true});
+    return res.status(200).json({ success: true });
   } catch (error) {
-    console.error('Error updating notifications:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error updating notifications:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
 const updateNotificationStatus = async (req, res) => {
   try {
     const { notificationID, role } = req.params;
-    console.log(req.params)
     // Find the notification by ID
     const notification = await Notifications.findByPk(notificationID);
 
     if (!notification) {
       // Notification not found
-      return res.status(404).json({ success: false, message: 'Notification not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "Notification not found" });
     }
 
     // Check if the notification status needs to be updated
-    if (notification[`statusOf${role}`] !== 'Read') {
+    if (notification[`statusOf${role}`] !== "Read") {
       // Update notification status to 'Read'
-      await notification.update({ [`statusOf${role}`]: 'Read' });
+      await notification.update({ [`statusOf${role}`]: "Read" });
 
       // Successfully updated the notification status
       return res.status(200).json({ success: true, notification });
     } else {
       // Notification is already marked as 'Read'
-      return res.status(200).json({ success: false, message: 'Notification already marked as Read' });
+      return res.status(200).json({
+        success: false,
+        message: "Notification already marked as Read",
+      });
     }
   } catch (error) {
-    console.error('Error updating notification status:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error updating notification status:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
@@ -362,16 +362,28 @@ const getProductById = async (req, res) => {
     });
 
     if (!product) {
-      return res.status(404).json({ error: 'Product not found' });
+      return res.status(404).json({ error: "Product not found" });
     }
 
     return res.status(200).json({ product });
   } catch (error) {
-    console.error('Error retrieving product:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error retrieving product:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
-
-
-module.exports = { signupController, loginController,uploadPrescription,uploadProfile,validateUserDataController, getUserEmailByContactNumber,getUserProfile, createNotification, getNotifications,updateNotifications, updateNotificationStatus, getOrderById, getProductById };
+module.exports = {
+  signupController,
+  loginController,
+  uploadPrescription,
+  uploadProfile,
+  validateUserDataController,
+  getUserEmailByContactNumber,
+  getUserProfile,
+  createNotification,
+  getNotifications,
+  updateNotifications,
+  updateNotificationStatus,
+  getOrderById,
+  getProductById,
+};

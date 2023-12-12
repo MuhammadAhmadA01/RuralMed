@@ -1,18 +1,30 @@
 // TimePicker.js
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Modal, ScrollView, StyleSheet, TouchableWithoutFeedback } from 'react-native';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  TouchableWithoutFeedback,
+} from "react-native";
 
 const TimePicker = ({ onTimeSelected }) => {
-  const [selectedHour, setSelectedHour] = useState('00');
-  const [selectedMinute, setSelectedMinute] = useState('00');
-  const [selectedPeriod, setSelectedPeriod] = useState('AM');
+  const [selectedHour, setSelectedHour] = useState("00");
+  const [selectedMinute, setSelectedMinute] = useState("00");
+  const [selectedPeriod, setSelectedPeriod] = useState("AM");
   const [showHourPicker, setShowHourPicker] = useState(false);
   const [showMinutePicker, setShowMinutePicker] = useState(false);
   const [showPeriodPicker, setShowPeriodPicker] = useState(false);
 
-  const hours = Array.from({ length: 12 }, (_, index) => String(index+1).padStart(2, '0'));
-  const minutes = Array.from({ length: 60 }, (_, index) => String(index).padStart(2, '0'));
-  const periods = ['AM', 'PM'];
+  const hours = Array.from({ length: 12 }, (_, index) =>
+    String(index + 1).padStart(2, "0")
+  );
+  const minutes = Array.from({ length: 60 }, (_, index) =>
+    String(index).padStart(2, "0")
+  );
+  const periods = ["AM", "PM"];
 
   const handleHourChange = (hour) => {
     setSelectedHour(hour);
@@ -37,9 +49,20 @@ const TimePicker = ({ onTimeSelected }) => {
     updateSelectedTime();
   }, [selectedHour, selectedMinute, selectedPeriod]);
 
-  const renderPicker = (data, selectedValue, handleSelect, visible, closeModal) => {
+  const renderPicker = (
+    data,
+    selectedValue,
+    handleSelect,
+    visible,
+    closeModal
+  ) => {
     return (
-      <Modal transparent={true} animationType="slide" visible={visible} onRequestClose={closeModal}>
+      <Modal
+        transparent={true}
+        animationType="slide"
+        visible={visible}
+        onRequestClose={closeModal}
+      >
         <TouchableWithoutFeedback onPress={closeModal}>
           <View style={styles.modalContainer}>
             <View style={styles.pickerContainer}>
@@ -47,8 +70,14 @@ const TimePicker = ({ onTimeSelected }) => {
                 {data.map((value) => (
                   <TouchableOpacity
                     key={value}
-                    style={[styles.pickerItem, value === selectedValue && styles.selectedItem]}
-                    onPress={() => { handleSelect(value); updateSelectedTime(); }}
+                    style={[
+                      styles.pickerItem,
+                      value === selectedValue && styles.selectedItem,
+                    ]}
+                    onPress={() => {
+                      handleSelect(value);
+                      updateSelectedTime();
+                    }}
                   >
                     <Text style={styles.pickerText}>{value}</Text>
                   </TouchableOpacity>
@@ -67,7 +96,9 @@ const TimePicker = ({ onTimeSelected }) => {
       <TouchableOpacity onPress={() => setShowHourPicker(true)}>
         <Text style={styles.itemText}>{selectedHour}</Text>
       </TouchableOpacity>
-      {renderPicker(hours, selectedHour, handleHourChange, showHourPicker, () => setShowHourPicker(false))}
+      {renderPicker(hours, selectedHour, handleHourChange, showHourPicker, () =>
+        setShowHourPicker(false)
+      )}
 
       {/* Minute Picker */}
       <TouchableOpacity onPress={() => setShowMinutePicker(true)}>
@@ -98,27 +129,27 @@ const TimePicker = ({ onTimeSelected }) => {
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     marginTop: 10,
   },
   itemText: {
     fontSize: 16,
-    color: '#333',
+    color: "#333",
     padding: 10,
     borderRadius: 5,
     borderWidth: 1,
-    borderColor: '#25d366',
+    borderColor: "#25d366",
     marginRight: 10,
   },
   modalContainer: {
     flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   pickerContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingVertical: 15,
@@ -127,14 +158,14 @@ const styles = StyleSheet.create({
   pickerItem: {
     padding: 10,
     borderRadius: 5,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
   },
   selectedItem: {
-    backgroundColor: '#25d366',
+    backgroundColor: "#25d366",
   },
   pickerText: {
     fontSize: 16,
-    color: '#333',
+    color: "#333",
   },
 });
 

@@ -1,17 +1,16 @@
-
 const { Sequelize } = require("sequelize");
 const { sequelize, DataTypes } = require("../../config/config");
-const Customer = sequelize.define('customers', {
+const Customer = sequelize.define("customers", {
   customerID: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true,
     allowNull: false,
   },
-  email:{
+  email: {
     type: DataTypes.STRING,
-    allowNull:false,
-    unique:true
+    allowNull: false,
+    unique: true,
   },
   cnic: {
     type: DataTypes.STRING,
@@ -22,8 +21,11 @@ const Customer = sequelize.define('customers', {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
-  
-  
 });
-sequelize.sync().then(()=>{console.log('created customer')}).catch()
+sequelize
+  .sync()
+  .then(() => {
+    console.log("created customer");
+  })
+  .catch();
 module.exports = Customer;

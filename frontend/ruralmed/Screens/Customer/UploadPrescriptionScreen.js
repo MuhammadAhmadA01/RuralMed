@@ -7,7 +7,7 @@ import {
   Image,
   Alert,
   ActivityIndicator,
-  Switch
+  Switch,
 } from "react-native";
 import { Title } from "react-native-paper";
 import * as ImagePicker from "expo-image-picker";
@@ -29,6 +29,7 @@ const UploadPrescriptionScreen = ({ navigation, route }) => {
   useEffect(() => {
     setSelectedImage("");
     setDuration("");
+    setSwitchOn(false);
   }, []);
   const openImageLibrary = () => {
     ImagePicker.requestMediaLibraryPermissionsAsync()
@@ -49,6 +50,7 @@ const UploadPrescriptionScreen = ({ navigation, route }) => {
         }
       })
       .catch((error) => {
+        console.error("Error during image selection:", error.message);
         Alert.alert(
           "Error",
           "An error occurred during image selection. Please try again."
@@ -90,8 +92,6 @@ const UploadPrescriptionScreen = ({ navigation, route }) => {
       .then((response) => response.json())
       .then((data) => {
         // Handle the response data
-
-        console.log("Text extraction response:", data);
 
         // Check for specific words in the response
         const foundWords = data.filter(
@@ -174,10 +174,9 @@ const UploadPrescriptionScreen = ({ navigation, route }) => {
           const type = "image/jpg";
           const formData = new FormData();
           formData.append("profile", { name, uri: selectedImage, type });
-          console.log(email)
           formData.append("email", email);
           formData.append("duration", duration);
-       
+
           console.log(formData);
 
           fetch(`http://${IP_ADDRESS}:5000/upload-pres`, {
@@ -190,16 +189,14 @@ const UploadPrescriptionScreen = ({ navigation, route }) => {
           })
             .then((response) => response.json())
             .then((data) => {
-              console.log(data)
+              console.log(data);
               // Handle the response data as needed
-              console.log("Upload response:", data);
               setLoading(false);
               navigation.navigate("PrescriptionPlaceOrderScreen", {
                 contactNumber: contactNumberCustomer,
                 store,
                 prescriptionLink: data.link,
-                switchOn
-
+                switchOn,
               });
               //  Alert.alert('Uploaded success')
             })
@@ -208,11 +205,7 @@ const UploadPrescriptionScreen = ({ navigation, route }) => {
             });
           // Continue with the order placement logic...
         } else {
-          console.log("Not a valid prescription.");
-          Alert.alert(
-            "Error",
-            "No prescription-related words found in the image."
-          );
+          Alert.alert("Error", "Invalid Prescription");
           setLoading(false);
           return;
         }
@@ -228,17 +221,16 @@ const UploadPrescriptionScreen = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
-       {/* Image Instructions Section */}
-    
-      
+      {/* Image Instructions Section */}
+
       <Title style={styles.title}>Upload your Prescription</Title>
       <View style={styles.instructionsContainer}>
         <Title style={styles.instructionsTitle}>Instructions</Title>
         <Text style={styles.instructionsText}>
-          - Prescription must have clinic/hospital name {"\n"}  printed on it {"\n"}
-          - Must not contain your personal information {"\n"}
-          - Do not upload any handwritten medicines only.{"\n"}
-          - You can hide your identity as well
+          - Prescription must have clinic/hospital name {"\n"} printed on it{" "}
+          {"\n"}- Must not contain your personal information {"\n"}- Do not
+          upload any handwritten medicines only.{"\n"}- You can hide your
+          identity as well
         </Text>
       </View>
 
@@ -247,10 +239,23 @@ const UploadPrescriptionScreen = ({ navigation, route }) => {
           {selectedImage ? (
             <Image source={{ uri: selectedImage }} style={styles.image} />
           ) : (
-            <Text style={{ color: "#25d366", marginTop:20 }}>Click here to Select Image</Text>
+            <Text style={{ color: "#25d366", marginTop: 20 }}>
+              Click here to Select Image
+            </Text>
           )}
         </View>
       </TouchableOpacity>
+      <View style={styles.switchContainer}>
+        <Text>Hide Identity</Text>
+        <Switch
+          value={switchOn}
+          onValueChange={() => {
+            setSwitchOn(!switchOn);
+          }}
+          trackColor={{ false: "#767577", true: "#25d366" }}
+          thumbColor={switchOn ? "#25d366" : "#f4f3f4"}
+        />
+      </View>
       {durationError && <Text style={styles.errorText}>{durationError}</Text>}
 
       <TextInput
@@ -274,15 +279,6 @@ const UploadPrescriptionScreen = ({ navigation, route }) => {
           }
         }}
       />
- <View style={styles.switchContainer}>
-          <Text>Hide Identity</Text>
-          <Switch
-            value={switchOn}
-            onValueChange={() => setSwitchOn(!switchOn)}
-            trackColor={{ false: "#767577", true: "#25d366" }}
-            thumbColor={switchOn ? "#25d366" : "#f4f3f4"}
-          />
-        </View>
 
       <TouchableOpacity onPress={handleCheckout} style={styles.signupButton}>
         <Text style={styles.signupButtonText}>Checkout</Text>

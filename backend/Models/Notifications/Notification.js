@@ -2,14 +2,14 @@ const { Sequelize } = require("sequelize");
 const { sequelize, DataTypes } = require("../../config/config");
 
 const Notifications = sequelize.define("notifications", {
-    notificatonID: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-        allowNull: false,
-      },
-      
-    orderID: {
+  notificatonID: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+    allowNull: false,
+  },
+
+  orderID: {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
@@ -31,32 +31,32 @@ const Notifications = sequelize.define("notifications", {
   statusOfOwner: {
     type: DataTypes.STRING,
     allowNull: false,
-    defaultValue:'Unread'
+    defaultValue: "Unread",
   },
   isOpenedByOwner: {
     type: DataTypes.BOOLEAN,
     allowNull: false,
-    defaultValue:false
+    defaultValue: false,
   },
   statusOfRider: {
     type: DataTypes.STRING,
     allowNull: false,
-    defaultValue:'Unread'
+    defaultValue: "Unread",
   },
   isOpenedByRider: {
     type: DataTypes.BOOLEAN,
     allowNull: false,
-    defaultValue:false
+    defaultValue: false,
   },
   statusOfCustomer: {
     type: DataTypes.STRING,
     allowNull: false,
-    defaultValue:'Unread'
+    defaultValue: "Unread",
   },
   isOpenedByCustomer: {
     type: DataTypes.BOOLEAN,
     allowNull: false,
-    defaultValue:false
+    defaultValue: false,
   },
 });
 

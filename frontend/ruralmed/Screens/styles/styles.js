@@ -8,12 +8,41 @@ export const styles = StyleSheet.create({
     flexGrow: 1,
     padding: 16,
     justifyContent: "center",
-    backgroundColor:'white'
+    backgroundColor: "white",
+  },
+  switchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 15,
+  },
+  dashboardContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginTop: "5%",
+  },
+  dashboardItem: {
+    alignItems: "center",
+  },
+  dashboardLabel: {
+    fontSize: windowWidth * 0.04,
+    color: "#333",
+  },
+
+  dashboardValue: {
+    fontSize: windowWidth * 0.05,
+    fontWeight: "bold",
+    color: "#25d366",
+  },
+  switchLabel: {
+    fontSize: 16,
+    color: "#333",
   },
   title: {
-    fontSize: windowWidth * 0.06, // Use a percentage of the window width
+    fontSize: windowWidth * 0.09, // Use a percentage of the window width
     marginBottom: "5%", // Use percentage for margin
     textAlign: "center",
+    //marginTop: "17%" // Use percentage for margin
   },
   inputContainer: {
     width: "100%",
@@ -26,6 +55,21 @@ export const styles = StyleSheet.create({
     marginBottom: "3%", // Use percentage for margin
     paddingHorizontal: "3%", // Use percentage for padding
     borderRadius: 8,
+  },
+  radioContainer: {
+    marginTop: 10,
+    flexDirection: "column", // This will arrange the radio buttons vertically
+  },
+  timePickerContainer: {
+    marginTop: 15,
+  },
+  inputError: {
+    borderColor: "red",
+  },
+
+  error: {
+    color: "red",
+    marginTop: 5,
   },
   signupButton: {
     backgroundColor: "#25d366",
@@ -104,17 +148,15 @@ export const styles = StyleSheet.create({
   mapLabel: {
     fontSize: windowWidth * 0.05, // Use a percentage of the window width
     color: "#25d366",
-    marginBottom: "2%"
-    
-    ,
-    marginLeft:"3.5%" // Use percentage for margin
+    marginBottom: "2%",
+
+    marginLeft: "3.5%", // Use percentage for margin
   },
   map: {
     height: windowWidth * 0.4, // Use a percentage of the window width
     width: "100%", // Use 100% width to make it responsive
     borderRadius: 8,
     backgroundColor: "lightgray",
-    
   },
   currentLocationButton: {
     backgroundColor: "#25d366",
@@ -128,8 +170,8 @@ export const styles = StyleSheet.create({
     color: "#fff",
     fontSize: windowWidth * 0.04, // Use a percentage of the window width
   },
-   // New login styles
-   loginContainer: {
+  // New login styles
+  loginContainer: {
     flexGrow: 1,
     padding: 16,
     justifyContent: "center",
@@ -179,7 +221,7 @@ export const styles = StyleSheet.create({
     height: windowWidth * 0.4, // Use a percentage of the window width
     marginBottom: "1%", // Use percentage for margin
     resizeMode: "contain",
-    alignContent:"center", // Make sure the image does not exceed its original size
-    marginHorizontal:"26%"
+    alignContent: "center", // Make sure the image does not exceed its original size
+    marginHorizontal: "26%",
   },
 });

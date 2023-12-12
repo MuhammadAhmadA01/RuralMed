@@ -1,7 +1,7 @@
-const { Sequelize,QueryTypes } = require("sequelize");
+const { Sequelize, QueryTypes } = require("sequelize");
 const { sequelize, DataTypes } = require("../../config/config");
 const { Op, literal, fn, col } = require("sequelize");
-const Cart= require('../../Models/Cart/Cart')
+const Cart = require("../../Models/Cart/Cart");
 const Prescription = require("../../Models/Prescription/prescription");
 const Customers = require("../../Models/Customer/Customer");
 const prescription = require("../../Models/Prescription/prescription");
@@ -72,83 +72,106 @@ const placeOrder = (req, res) => {
     orderStatus,
     isPrescription,
     orderDetails,
+    storeId,
+    isIdentityHidden,
   } = req.body;
-  let calculatedOrderTotal;
 
-  // Validate that quantity is not more than availableQuantity for each product
-  const validateQuantity = () => {
-    return Promise.all(
-      orderDetails.map((detail) =>
-        Product.findByPk(detail.prodId).then((product) => {
-          if (!product || detail.quantity > product.availableQuantity) {
-            throw {
-              status: 400,
-              message:
-                "Invalid product or quantity exceeds available quantity.",
-            };
-          }
-        })
-      )
-    );
-  };
-
-  // Calculate orderTotal by adding all subtotals and shipping charges
-  const calculateOrderTotal = () => {
-    calculatedOrderTotal =
-      orderDetails.reduce((acc, detail) => acc + detail.subtotal, 0) +
-      shippingCharges;
-    return Promise.resolve();
-  };
-
-  // Update availableQuantity, calculate subtotal, and create the order
-  const processOrderDetails = () => {
-    const updateProduct = (detail) => {
-      return Product.findByPk(detail.prodId).then((product) => {
-        if (!product) {
-          throw { status: 400, message: "Invalid product." };
-        }
-        // Update availableQuantity in the products table
-        product.availableQuantity -= detail.quantity;
-        // Calculate subtotal based on the product's price
-        detail.subtotal = product.price * detail.quantity;
-        return product.save();
-      });
-    };
-
-    const updateProductsPromises = orderDetails.map(updateProduct);
-    return Promise.all(updateProductsPromises);
-  };
-
-  // Create the order
-  const createOrder = () => {
-    return Orders.create({
+  // Create the order if isPrescription is true
+  if (isPrescription) {
+    Orders.create({
       customerID,
       riderId,
       ownerId,
       shippingCharges,
-      orderTotal: calculatedOrderTotal,
+      orderTotal: 0, // Set to 0 since it's not calculated for prescriptions
       orderStatus,
       isPrescription,
       orderDetails,
-    });
-  };
-
-  // Handle the entire process using .then and .catch notation
-  validateQuantity()
-    .then(calculateOrderTotal)
-    .then(processOrderDetails)
-    .then(createOrder)
-    .then((newOrder) => {
-      res.status(201).json(newOrder);
+      storeId,
+      isIdentityHidden,
     })
-    .catch((error) => {
-      console.error("Error placing order:", error);
-      const status = error.status || 500;
-      res
-        .status(status)
-        .json({ error: error.message || "Internal Server Error" });
-    });
+      .then((newOrder) => {
+        res.status(201).json(newOrder);
+      })
+      .catch((error) => {
+        console.error("Error placing prescription order:", error);
+        const status = error.status || 500;
+        res
+          .status(status)
+          .json({ error: error.message || "Internal Server Error" });
+      });
+  } else {
+    // Validation and order processing for non-prescription orders
+    const validateQuantity = () => {
+      return Promise.all(
+        orderDetails.map((detail) =>
+          Product.findByPk(detail.prodId).then((product) => {
+            if (!product || detail.quantity > product.availableQuantity) {
+              throw {
+                status: 400,
+                message:
+                  "Invalid product or quantity exceeds available quantity.",
+              };
+            }
+          })
+        )
+      );
+    };
+
+    const calculateOrderTotal = () => {
+      calculatedOrderTotal =
+        orderDetails.reduce((acc, detail) => acc + detail.subtotal, 0) +
+        shippingCharges;
+      return Promise.resolve();
+    };
+
+    const processOrderDetails = () => {
+      const updateProduct = (detail) => {
+        return Product.findByPk(detail.prodId).then((product) => {
+          if (!product) {
+            throw { status: 400, message: "Invalid product." };
+          }
+          product.availableQuantity -= detail.quantity;
+          detail.subtotal = product.price * detail.quantity;
+          return product.save();
+        });
+      };
+
+      const updateProductsPromises = orderDetails.map(updateProduct);
+      return Promise.all(updateProductsPromises);
+    };
+
+    validateQuantity()
+      .then(calculateOrderTotal)
+      .then(processOrderDetails)
+      .then(() => {
+        // Create the order after processing order details
+        return Orders.create({
+          customerID,
+          riderId,
+          ownerId,
+          shippingCharges,
+          orderTotal: calculatedOrderTotal, // Set to the calculated total for non-prescription orders
+          orderStatus,
+          isPrescription,
+          orderDetails,
+          storeId,
+          isIdentityHidden,
+        });
+      })
+      .then((newOrder) => {
+        res.status(201).json(newOrder);
+      })
+      .catch((error) => {
+        console.error("Error placing order:", error);
+        const status = error.status || 500;
+        res
+          .status(status)
+          .json({ error: error.message || "Internal Server Error" });
+      });
+  }
 };
+
 const viewProfile = (req, res) => {
   const { email } = req.params;
   // Retrieve customer record from the 'customers' table
@@ -266,17 +289,18 @@ const getNearbyStoresForCustomers = async (req, res) => {
       include: [],
     });
     const riderEmails = nearbyRiders.map((rider) => rider.email);
-    
+
     // Retrieve working areas of those riders from the Riders table
     const workingAreas = await Rider.findAll({
-      attributes: ["workingArea",'email'],
+      attributes: ["workingArea", "email"],
       where: literal(` 
       "availabilityStatus"='Online' AND
       email IN (${riderEmails.map((email) => `'${email}'`).join(",")})
       `),
     });
-    if(workingAreas.length<1)
-    return res.status(200).json({ success:false });
+    if (workingAreas.length < 1)
+      return res.status(200).json({ success: false });
+
     const responseEmails = workingAreas.map((rider) => rider.email);
     const response = workingAreas.map((rider) => rider.workingArea);
     // Include a subquery to check for stores with at least one product in the products table
@@ -299,7 +323,7 @@ const getNearbyStoresForCustomers = async (req, res) => {
       where: literal(
         `availability='Online' AND
         ${storeConditions}`
-        ),
+      ),
     });
     const storesWithProducts = await Promise.all(
       stores.map(async (store) => {
@@ -319,31 +343,33 @@ const getNearbyStoresForCustomers = async (req, res) => {
 
     // Filter out null values (stores without products)
     const filteredStores = storesWithProducts.filter((store) => store !== null);
-
-    return res.status(200).json({ stores: filteredStores, success:true, riders:riderEmails });
+    return res
+      .status(200)
+      .json({ stores: filteredStores, success: true, riders: responseEmails });
   } catch (error) {
     console.error("Error fetching nearby stores:", error);
     return res
       .status(500)
-      .json({ error: "An error occurred while fetching nearby stores" ,success:false});
+      .json({
+        error: "An error occurred while fetching nearby stores",
+        success: false,
+      });
   }
 };
-const calculateRiderDistance=async(req,res)=>{
+const calculateRiderDistance = async (req, res) => {
   try {
     const { riderEmail, storeLat, storeLng } = req.params;
     // Fetch the rider's working area from the database
     const rider = await Rider.findOne({
-      attributes: ['workingArea', 'deliveryFee','riderID'],
+      attributes: ["workingArea", "deliveryFee", "riderID"],
       where: { email: riderEmail },
     });
     if (!rider) {
-      return res.status(404).json({ error: 'Rider not found' });
+      return res.status(404).json({ error: "Rider not found" });
     }
-    const [longitude, latitude] = rider.workingArea
-    .split(",")
-    .map(parseFloat);
+    const [longitude, latitude] = rider.workingArea.split(",").map(parseFloat);
     // Use Sequelize.literal to include raw SQL in the query
-    
+
     // Execute the raw SQL query to calculate the distance
     const result = await sequelize.query(
       `SELECT 6371 * acos(cos(radians(${storeLat})) * cos(radians(SPLIT_PART("workingArea", ',', 2)::float8)) *cos(radians(SPLIT_PART("workingArea", ',', 1)::float8) - radians(${storeLng})) +sin(radians(${storeLat})) * sin(radians(SPLIT_PART("workingArea", ',', 2)::float8))) as distance FROM riders WHERE email = :riderEmail`,
@@ -353,12 +379,16 @@ const calculateRiderDistance=async(req,res)=>{
       }
     );
     const distance = result && result[0] && result[0].distance;
-     return res.json({ distance, fee:rider.deliveryFee, riderId:rider.riderID });
+    return res.json({
+      distance,
+      fee: rider.deliveryFee,
+      riderId: rider.riderID,
+    });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    return res.status(500).json({ error: "Internal Server Error" });
   }
-}
+};
 const getCartByCustomerContact = (req, res) => {
   const { customer_contact } = req.params;
 
@@ -367,16 +397,18 @@ const getCartByCustomerContact = (req, res) => {
   })
     .then((cart) => {
       if (!cart) {
-        return res.status(404).json({ error: 'Cart not found for the customer', success:false });
+        return res
+          .status(404)
+          .json({ error: "Cart not found for the customer", success: false });
       }
-      console.log(cart)
       const cartDetails = cart.cart_details;
-      console.log(cartDetails)
-      return res.status(200).json({cartDetails,success:true});
+      return res.status(200).json({ cartDetails, success: true });
     })
     .catch((error) => {
       console.error(error);
-      return res.status(500).json({ error: 'Internal server error',success:false });
+      return res
+        .status(500)
+        .json({ error: "Internal server error", success: false });
     });
 };
 const addToCart = (req, res) => {
@@ -404,7 +436,7 @@ const addToCart = (req, res) => {
             quantity: 1,
           });
         } else {
-          throw new Error('Product not available');
+          throw new Error("Product not available");
         }
       }
 
@@ -416,34 +448,27 @@ const addToCart = (req, res) => {
     })
     .then(() => {
       // Handle success, e.g., send response
-      res.status(200).json({ message: 'Product added to cart successfully' });
+      res.status(200).json({ message: "Product added to cart successfully" });
     })
     .catch((error) => {
       // Handle error, e.g., send error response
       console.error(error);
-      res
-        .status(404)
-        .json({ error: error.message || "Internal Server Error" });
-
+      res.status(404).json({ error: error.message || "Internal Server Error" });
     });
 };
 const removeFromCart = (req, res) => {
   const { productID, customerContact } = req.params;
-  console.log(productID,customerContact)
   Cart.findOne({
     where: { customer_contact: customerContact },
   })
     .then((cart) => {
       if (!cart) {
-        throw new Error('Cart not found');
+        throw new Error("Cart not found");
       }
-      console.log(cart.cart_details)
       // Find the index of the product in the cart's productArray
       const productIndex = cart.cart_details.findIndex(
-        (item) =>  item.productID === parseInt(productID)
-        
+        (item) => item.productID === parseInt(productID)
       );
-        console.log(productIndex)
       if (productIndex !== -1) {
         // Remove the product from the productArray
         cart.cart_details.splice(productIndex, 1);
@@ -452,18 +477,24 @@ const removeFromCart = (req, res) => {
         return Cart.update(
           { cart_details: cart.cart_details },
           { where: { customer_contact: customerContact } }
-        ).then(()=>{});
-      }
-       else {
-        throw new Error('Product not found in cart');
+        ).then(() => {});
+      } else {
+        throw new Error("Product not found in cart");
       }
     })
     .then(() => {
-      return res.status(200).json({ message: 'Product removed from cart successfully', success:true });
+      return res
+        .status(200)
+        .json({
+          message: "Product removed from cart successfully",
+          success: true,
+        });
     })
     .catch((error) => {
       console.error(error);
-      return res.status(500).json({ error: 'Internal server error', success:false });
+      return res
+        .status(500)
+        .json({ error: "Internal server error", success: false });
     });
 };
 const updateQuantity = async (req, res) => {
@@ -472,33 +503,32 @@ const updateQuantity = async (req, res) => {
 
     // Find the cart of the customer using the customer_contact
     const cart = await Cart.findOne({ where: { customer_contact } });
-    console.log(cart)
     if (!cart) {
-      return res.status(404).json({ error: 'Cart not found for the customer' });
+      return res.status(404).json({ error: "Cart not found for the customer" });
     }
 
     // Find the product in the cart's productArray
-    const productIndex = cart.cart_details.findIndex(item => item.productID === parseInt(productID));
-    console.log(productIndex)
+    const productIndex = cart.cart_details.findIndex(
+      (item) => item.productID === parseInt(productID)
+    );
     if (productIndex !== -1) {
       // Decrease the quantity by 1
-      cart.cart_details[productIndex].quantity= cart.cart_details[productIndex].quantity - 1;
+      cart.cart_details[productIndex].quantity =
+        cart.cart_details[productIndex].quantity - 1;
 
       // If the updated quantity is zero, you might want to remove the product from the array
-        // Update the quantity directly using the update query
-        console.log(cart.cart_details[productIndex].quantity)
-        const updatedCart=await Cart.update(
-          { cart_details: cart.cart_details },
-          { where: { customer_contact } }
-        );  console.log(updatedCart)
-
-      return res.status(200).json({ message: 'Quantity updated successfully' });
+      // Update the quantity directly using the update query
+      const updatedCart = await Cart.update(
+        { cart_details: cart.cart_details },
+        { where: { customer_contact } }
+      );
+      return res.status(200).json({ message: "Quantity updated successfully" });
     } else {
-      return res.status(404).json({ error: 'Product not found in the cart' });
+      return res.status(404).json({ error: "Product not found in the cart" });
     }
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 const deleteCartItem = async (req, res) => {
@@ -506,19 +536,27 @@ const deleteCartItem = async (req, res) => {
 
   try {
     // Find and delete the cart item based on customer_contact
-    const deletedCartItem = await Cart.destroy(
-      { 
-        where:{customer_contact} }
-      );
+    const deletedCartItem = await Cart.destroy({
+      where: { customer_contact },
+    });
 
     if (!deletedCartItem) {
-      return res.status(404).json({ message: 'Cart item not found for the provided customer contact.',success:false });
+      return res
+        .status(404)
+        .json({
+          message: "Cart item not found for the provided customer contact.",
+          success: false,
+        });
     }
 
-    return res.status(200).json({ message: 'Cart item deleted successfully.' ,success:true});
+    return res
+      .status(200)
+      .json({ message: "Cart item deleted successfully.", success: true });
   } catch (error) {
-    console.error('Error deleting cart item:', error);
-    return res.status(500).json({ message: 'Internal server error' ,success:false});
+    console.error("Error deleting cart item:", error);
+    return res
+      .status(500)
+      .json({ message: "Internal server error", success: false });
   }
 };
 module.exports = {
@@ -534,6 +572,5 @@ module.exports = {
   viewOrders,
   calculateRiderDistance,
   addToCart,
-  deleteCartItem
+  deleteCartItem,
 };
-//Added cart functionality

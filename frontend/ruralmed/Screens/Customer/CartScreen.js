@@ -19,23 +19,23 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const CartScreen = ({ navigation, route }) => {
   const dispatch = useDispatch();
-  const {contactNum}=route.params
+  const { contactNum } = route.params;
   const cartItems = useSelector((state) => state.cart.cartItems);
   const [localQuantities, setLocalQuantities] = useState({});
-  const [phoneNum,setPhoneNum]=useState('')
-  useEffect(()=>{
-    const fetchPhone=async()=>{
-      const phone= await AsyncStorage.getItem('phone');
+  const [phoneNum, setPhoneNum] = useState("");
+  useEffect(() => {
+    const fetchPhone = async () => {
+      const phone = await AsyncStorage.getItem("phone");
       setPhoneNum(phone);
-    }
+    };
     fetchPhone();
-  },[cartItems])
+  }, [cartItems]);
   const handleRemoveItem = async (productID) => {
     const apiEndpoint2 = `http://${IP_ADDRESS}:5000/remove-from-cart/${productID}/${contactNum}`;
-   
+
     try {
       // Make API call
-      const response = await fetch(apiEndpoint2)
+      const response = await fetch(apiEndpoint2);
       if (response.ok) {
         // If the API call is successful, dispatch the action to update the Redux store
         dispatch(removeFromCart(productID));
@@ -43,10 +43,12 @@ const CartScreen = ({ navigation, route }) => {
         console.error("Remove from cart API call failed", response);
       }
     } catch (error) {
-      console.error("Remove from cart API call failed with an exception:", error);
+      console.error(
+        "Remove from cart API call failed with an exception:",
+        error
+      );
     }
-  }
-
+  };
 
   useEffect(() => {
     // Update local quantities when cartItems change
@@ -56,12 +58,11 @@ const CartScreen = ({ navigation, route }) => {
     });
     setLocalQuantities(quantities);
   }, [cartItems]);
-  const handleQuantityChange =async (product, change) => {
+  const handleQuantityChange = async (product, change) => {
     const item = cartItems.find((item) => item.productID === product.productID);
     if (item) {
-      if(change>0)
-      {
-        const res=await fetch(`http://${IP_ADDRESS}:5000/add-to-cart`,{
+      if (change > 0) {
+        const res = await fetch(`http://${IP_ADDRESS}:5000/add-to-cart`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -71,29 +72,31 @@ const CartScreen = ({ navigation, route }) => {
             product,
           }),
         });
-        if(res.status===404)
-        {
-          Alert.alert('Limti exceeds', 'Your quantity exceeds the available quantity')
+        if (res.status === 404) {
+          Alert.alert(
+            "Limti exceeds",
+            "Your quantity exceeds the available quantity"
+          );
           return;
-        }
-        else
-        dispatch(updateCartItemQuantity({ productID:product.productID, change }));  
-      }   
-      else {
+        } else
+          dispatch(
+            updateCartItemQuantity({ productID: product.productID, change })
+          );
+      } else {
         try {
           // Make a fetch call to update the quantity
           const updateQuantityEndpoint = `http://${IP_ADDRESS}:5000/update-qty/${contactNum}/${product.productID}`;
-      
+
           const updateResponse = await fetch(updateQuantityEndpoint);
-          const minusRes=await updateResponse.json();
-          dispatch(updateCartItemQuantity({ productID:product.productID, change }));
-      
+          const minusRes = await updateResponse.json();
+          dispatch(
+            updateCartItemQuantity({ productID: product.productID, change })
+          );
         } catch (error) {
-          console.error('Quantity update failed with an exception:', error);
+          console.error("Quantity update failed with an exception:", error);
         }
       }
     }
-
   };
 
   const calculateSubtotal = () => {
@@ -106,8 +109,7 @@ const CartScreen = ({ navigation, route }) => {
 
   const handleCheckout = () => {
     // Perform checkout logic
-    navigation.navigate('PlaceOrderScreen',{customerContact:contactNum})
-    console.log("checkout pressed");
+    navigation.navigate("PlaceOrderScreen", { customerContact: contactNum });
   };
 
   return (
@@ -142,7 +144,7 @@ const CartScreen = ({ navigation, route }) => {
           <View style={styles.emptyCartContainer}>
             <Text style={styles.emptyCartText}>Empty cart</Text>
             <TouchableOpacity
-              onPress={() => navigation.navigate("HomeCustomer")}
+              onPress={() => navigation.replace("HomeCustomer")}
             >
               <Text style={styles.browseStoresText}>Browse to Stores</Text>
             </TouchableOpacity>
@@ -155,8 +157,7 @@ const CartScreen = ({ navigation, route }) => {
               <View style={styles.quantityContainer}>
                 <TouchableOpacity
                   onPress={() =>
-                    item.quantity > 1 &&
-                    handleQuantityChange(item, -1)
+                    item.quantity > 1 && handleQuantityChange(item, -1)
                   }
                   style={item.quantity === 1 ? styles.disabledButton : null}
                   disabled={item.quantity === 1}
@@ -166,16 +167,14 @@ const CartScreen = ({ navigation, route }) => {
                 <Text style={styles.quantityText}>
                   {localQuantities[item.productID]}
                 </Text>
-                <TouchableOpacity
-                  onPress={() => handleQuantityChange(item, 1)}
-                >
+                <TouchableOpacity onPress={() => handleQuantityChange(item, 1)}>
                   <Text style={styles.quantityButton}>+</Text>
                 </TouchableOpacity>
               </View>
               <TouchableOpacity
-                onPress={() => 
-                  {
-                  handleRemoveItem(item.productID)}}
+                onPress={() => {
+                  handleRemoveItem(item.productID);
+                }}
               >
                 <Text style={styles.removeButton}>Remove</Text>
               </TouchableOpacity>

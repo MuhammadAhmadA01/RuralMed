@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "ruralmed",
-    "slug": "ruralmed",
+    "name": "ruralMed",
+    "slug": "ruralMed",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -22,10 +22,15 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "android.package"
+      "package": "com.example.ruralmed"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "fc59c2d0-7153-4d5c-876d-598bf0bfad43"
+      }
     }
   }
 }

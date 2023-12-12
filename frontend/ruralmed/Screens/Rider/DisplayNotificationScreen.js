@@ -60,7 +60,6 @@ const NotificationOrderDetailScreen = ({ route, navigation }) => {
           );
           const storeData = await storeResponse.json();
           setStoreDetails(storeData.store);
-          console.log(storeDetails, "asasksnwin");
           const [long, lat] = storeData.store.store_address
             .split(",")
             .map(parseFloat);
@@ -71,7 +70,6 @@ const NotificationOrderDetailScreen = ({ route, navigation }) => {
             `http://${IP_ADDRESS}:5000/get-user-profile/${orderData.order.riderId}`
           );
           const riderData = await riderResponse.json();
-          console.log(riderData);
           setRiderDetails(riderData);
         }
         // Fetch product details for each product in order

@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "bcrypt": "^5.1.1",
+    "cloudinary": "^1.41.0",
     "connect-flash": "^0.1.1",
     "cors": "^2.8.5",
     "ejs": "^3.1.9",
@@ -8,6 +9,7 @@
     "express-ejs-layouts": "^2.5.1",
     "express-session": "^1.17.3",
     "express-validator": "^7.0.1",
+    "jsonwebtoken": "^9.0.2",
     "moment": "^2.29.4",
     "multer": "^1.4.5-lts.1",
     "pg": "^8.11.3",

@@ -1,12 +1,19 @@
 // RiderScreen.js
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert, Switch } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  Switch,
+} from "react-native";
 import MapComponent from "../MapView/MapInputComponent";
 import { styles } from "../styles/styles";
 import IP_ADDRESS from "../../config/config";
 const RiderScreen = ({ route, navigation }) => {
   const { email } = route.params.userData;
-  const formData  = route.params.image;
+  const formData = route.params.image;
   const { userData } = route.params;
   const [cnic, setCnic] = useState("");
   const [deliveryFee, setDeliveryFee] = useState("");
@@ -22,8 +29,15 @@ const RiderScreen = ({ route, navigation }) => {
 
     // Validate Delivery Fee
     const parsedDeliveryFee = parseInt(deliveryFee, 10);
-    if (isNaN(parsedDeliveryFee) || parsedDeliveryFee < 100 || parsedDeliveryFee > 1000) {
-      Alert.alert("Error", "Delivery fee must be a number between 100 and 1000");
+    if (
+      isNaN(parsedDeliveryFee) ||
+      parsedDeliveryFee < 100 ||
+      parsedDeliveryFee > 1000
+    ) {
+      Alert.alert(
+        "Error",
+        "Delivery fee must be a number between 100 and 1000"
+      );
       return;
     }
 
@@ -32,13 +46,14 @@ const RiderScreen = ({ route, navigation }) => {
       Alert.alert("Error", "Please select a working area on the map");
       return;
     }
-    const stringifiedWorkingArea = JSON.stringify(workingArea);
+    const { latitude, longitude } = workingArea;
+    const locationString = `${longitude},${latitude}`;
 
     const requestBody = {
       email,
       cnic,
       deliveryFee: parsedDeliveryFee,
-      workingArea:stringifiedWorkingArea,
+      workingArea: locationString,
       availabilityStatus: isOnline ? "Online" : "Offline",
     };
 
@@ -49,11 +64,14 @@ const RiderScreen = ({ route, navigation }) => {
       },
       body: JSON.stringify(requestBody),
     })
-      .then(response => response.json())
-      .then(responseData => {
+      .then((response) => response.json())
+      .then((responseData) => {
         if (responseData.success) {
-          Alert.alert("Success", "Rider details saved successfully, Waiting for uploading image");
-          navigation.navigate('login');
+          Alert.alert(
+            "Success",
+            "Rider details saved successfully, Waiting for uploading image"
+          );
+          navigation.replace("login");
         } else {
           Alert.alert("Error", responseData.error || "Unknown error");
           if (responseData.error === "email is already in use") {
@@ -62,7 +80,7 @@ const RiderScreen = ({ route, navigation }) => {
           }
         }
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("Error submitting data:", error.message);
         Alert.alert("Error", "Error submitting data. Please try again.");
       })
@@ -75,8 +93,8 @@ const RiderScreen = ({ route, navigation }) => {
           body: JSON.stringify(userData),
         });
       })
-      .then(response => response.json())
-      .then(responseData => {
+      .then((response) => response.json())
+      .then((responseData) => {
         if (responseData.success) {
         } else {
           const error = responseData.error || "Unknown error";
@@ -84,7 +102,7 @@ const RiderScreen = ({ route, navigation }) => {
           route.params.navigateBack();
         }
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("Error during user registration:", error.message);
         Alert.alert("Error, Registration Error");
         route.params.navigateBack();
@@ -99,18 +117,17 @@ const RiderScreen = ({ route, navigation }) => {
           body: formData,
         });
       })
-      .then(response => response.text())
-      .then(data => {
+      .then((response) => response.json())
+      .then((data) => {
         if (data.success) {
           Alert.alert("Success", "Use your email and password to login now");
-          navigation.navigate('login');
+          navigation.replace("login");
         } else {
           Alert.alert("Error", "Registration failed due to image");
           route.params.navigateBack();
-    
         }
       })
-      .catch(error => {
+      .catch((error) => {
         route.params.navigateBack();
       });
   };

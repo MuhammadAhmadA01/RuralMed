@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
 import { styles } from "../styles/styles";
 import IP_ADDRESS from "../../config/config";
-const OwnerScreen = ({ route,navigation }) => {
+const OwnerScreen = ({ route, navigation }) => {
   const { email } = route.params.userData;
-  const  formData  = route.params.image;
+  const formData = route.params.image;
   const { userData } = route.params;
   const [cnic, setCnic] = useState("");
   const handleSave = () => {
@@ -15,17 +15,20 @@ const OwnerScreen = ({ route,navigation }) => {
     }
 
     fetch(`http://${IP_ADDRESS}:5000/owner-details`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, cnic}),
-      })
-      .then(response => response.json())
-      .then(responseData => {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, cnic }),
+    })
+      .then((response) => response.json())
+      .then((responseData) => {
         if (responseData.success) {
           // Handle success
-          Alert.alert("Success", "Owner details saved successfully, Waiting for uploading image");
+          Alert.alert(
+            "Success",
+            "Owner details saved successfully, Waiting for uploading image"
+          );
         } else {
           // Handle failure
           Alert.alert("Error", responseData.error || "Unknown errorr in owner");
@@ -35,7 +38,7 @@ const OwnerScreen = ({ route,navigation }) => {
           }
         }
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("Error submitting data:", error.message);
         Alert.alert("Error", "Error submitting data. Please try again.");
         return;
@@ -49,8 +52,8 @@ const OwnerScreen = ({ route,navigation }) => {
           body: JSON.stringify(userData),
         });
       })
-      .then(response => response.json())
-      .then(responseData => {
+      .then((response) => response.json())
+      .then((responseData) => {
         if (responseData.success) {
         } else {
           const error = responseData.error || "Unknown error";
@@ -59,7 +62,7 @@ const OwnerScreen = ({ route,navigation }) => {
           return;
         }
       })
-      .catch(error => {
+      .catch((error) => {
         Alert.alert("Error, Registration Error");
         //route.params.navigateBack();
         return;
@@ -74,20 +77,20 @@ const OwnerScreen = ({ route,navigation }) => {
           body: formData,
         });
       })
-      .then(response => response.json())
-      .then(data => {
+      .then((response) => response.json())
+      .then((data) => {
         if (data.success) {
           Alert.alert("Success", "Use your email and password to login now");
-           navigation.navigate('login')
+          navigation.replace("login");
         } else {
           Alert.alert("Error", "Registration failed due to image");
           //navigation.navigate('login')
-       
+
           route.params.navigateBack();
           return;
         }
       })
-      .catch(error => {
+      .catch((error) => {
         route.params.navigateBack();
         return;
       });
@@ -102,12 +105,10 @@ const OwnerScreen = ({ route,navigation }) => {
         onChangeText={setCnic}
         keyboardType="numeric"
       />
-        <TouchableOpacity style={styles.signupButton} onPress={handleSave}>
+      <TouchableOpacity style={styles.signupButton} onPress={handleSave}>
         <Text style={styles.signupButtonText}>Save</Text>
       </TouchableOpacity>
-
-  </View>
+    </View>
   );
-}
+};
 export default OwnerScreen;
-      

@@ -1,23 +1,53 @@
-const { body, validationResult } = require("express-validator");
+const { body, validationResult, param } = require("express-validator");
+const Customer = require("../Models/Customer/Customer");
+const User = require("../Models/User/User");
+const viewCustomerValidationRules = [
+  param("email")
+    .isEmail()
+    .withMessage("email param must be an email")
+    .notEmpty()
+    .withMessage("email param cannot be empty"),
+];
+
+const validateViewCustomerParams = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const errorMessages = errors.array().map((error) => error.msg);
+    return res.status(400).json({ errors: errorMessages });
+  }
+  next();
+};
 
 const customerValidationRules = [
   body("cnic")
     .isNumeric()
+    .withMessage("CNIC must be numeric")
     .isLength({ min: 13, max: 13 })
-    .notEmpty(),
+    .withMessage("Invalid CNIC length")
+    .notEmpty()
+    .withMessage("CNIC cannot be empty"),
+
   body("email")
     .isEmail()
-    .notEmpty(),
+    .withMessage("Invalid email")
+    .notEmpty()
+    .withMessage("Email cannot be empty"),
+
   body("deliveryFee")
     .isNumeric()
+    .withMessage("Delivery fee must be numeric")
     .custom((value) => value > 100)
-    .notEmpty(),
+    .withMessage("Delivery fee must be greater than 100")
+    .notEmpty()
+    .withMessage("Delivery fee cannot be empty"),
 ];
 
 const validateCustomer = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    const errorMessages = errors.array().map((error) => error.msg);
+    const errorMessages = errors
+      .array()
+      .map((error) => `${error.param}: ${error.msg}`);
     return res.status(400).json({ errors: errorMessages });
   }
 
@@ -30,14 +60,8 @@ const orderValidationRules = [
     .withMessage("CustomerID must be integer")
     .notEmpty()
     .withMessage("CustomerID cannot be empty"),
-  body("riderId")
-    .isInt()
-    .notEmpty()
-    .withMessage("RiderID cannot be empty"),
-  body("ownerId")
-    .isInt()
-    .notEmpty()
-    .withMessage("OwnerID cannot be empty"),
+  body("riderId").isInt().notEmpty().withMessage("RiderID cannot be empty"),
+  body("ownerId").isInt().notEmpty().withMessage("OwnerID cannot be empty"),
   body("shippingCharges")
     .isInt({ min: 100 })
     .withMessage("Invalid shipping charges ")
@@ -84,4 +108,6 @@ module.exports = {
   validateCustomer,
   orderValidationRules,
   validateOrder,
+  viewCustomerValidationRules,
+  validateViewCustomerParams,
 };

@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
-import * as Location from 'expo-location';
-import { styles } from '../styles/styles';
+import React, { useState, useEffect, useRef } from "react";
+import { View, Text, TouchableOpacity } from "react-native";
+import MapView, { Marker } from "react-native-maps";
+import * as Location from "expo-location";
+import { styles } from "../styles/styles";
 
 const MapComponent = ({ onSelectLocation }) => {
   const [currentLocation, setCurrentLocation] = useState(null);
@@ -13,18 +13,18 @@ const MapComponent = ({ onSelectLocation }) => {
     const getLocation = async () => {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== 'granted') {
+        if (status !== "granted") {
           Alert.alert("Error", "grant permissions for location");
           return;
         }
         const location = await Location.getCurrentPositionAsync({});
         const { latitude, longitude } = location.coords;
         setCurrentLocation({
-          name: 'Current Location',
+          name: "Current Location",
           coordinate: { latitude, longitude },
         });
       } catch (error) {
-        console.error('Error getting current location:', error);
+        console.error("Error getting current location:", error);
       }
     };
     getLocation();
@@ -33,9 +33,10 @@ const MapComponent = ({ onSelectLocation }) => {
   const handleMapPress = (event) => {
     const { coordinate } = event.nativeEvent;
     setSelectedLocation({
-      name: 'Selected Location',
+      name: "Selected Location",
       coordinate,
     });
+    console.log(coordinate);
     onSelectLocation(coordinate); // Pass selected location back to the parent component
   };
 
