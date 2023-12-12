@@ -174,6 +174,7 @@ const UploadPrescriptionScreen = ({ navigation, route }) => {
           const type = "image/jpg";
           const formData = new FormData();
           formData.append("profile", { name, uri: selectedImage, type });
+          console.log(email)
           formData.append("email", email);
           formData.append("duration", duration);
        
