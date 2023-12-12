@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react';
-import { View, StyleSheet, Image } from 'react-native';
+import React, { useEffect } from "react";
+import { View, StyleSheet, Image } from "react-native";
 
-const LoadingScreen = ({ route,navigation }) => {
+const LoadingScreen = ({ route, navigation }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigation.navigate('OrderConfirmationScreen', route.params);
+      navigation.navigate("OrderConfirmationScreen", route.params);
     }, 5000);
 
     return () => clearTimeout(timer);
@@ -13,7 +13,7 @@ const LoadingScreen = ({ route,navigation }) => {
   return (
     <View style={styles.container}>
       <Image
-        source={require('../../assets/delivery.gif')}
+        source={require("../../assets/delivery.gif")}
         style={styles.animation}
       />
     </View>
@@ -23,8 +23,8 @@ const LoadingScreen = ({ route,navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   animation: {
     width: 300,

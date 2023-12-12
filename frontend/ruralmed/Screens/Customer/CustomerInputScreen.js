@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
 import { styles } from "../styles/styles";
 import IP_ADDRESS from "../../config/config";
-const CustomerScreen = ({ route,navigation }) => {
+const CustomerScreen = ({ route, navigation }) => {
   const { email } = route.params.userData;
-  const  formData  = (route.params.image);
+  const formData = route.params.image;
   const { userData } = route.params;
   const [cnic, setCnic] = useState("");
   const [deliveryFee, setDeliveryFee] = useState("");
@@ -18,8 +18,15 @@ const CustomerScreen = ({ route,navigation }) => {
 
     // Validate Delivery Fee
     const parsedDeliveryFee = parseInt(deliveryFee, 10);
-    if (isNaN(parsedDeliveryFee) || parsedDeliveryFee < 100 || parsedDeliveryFee > 1000) {
-      Alert.alert("Error", "Delivery fee must be a number between 100 and 1000");
+    if (
+      isNaN(parsedDeliveryFee) ||
+      parsedDeliveryFee < 100 ||
+      parsedDeliveryFee > 1000
+    ) {
+      Alert.alert(
+        "Error",
+        "Delivery fee must be a number between 100 and 1000"
+      );
       return;
     }
 
@@ -30,17 +37,20 @@ const CustomerScreen = ({ route,navigation }) => {
       },
       body: JSON.stringify({ email, cnic, deliveryFee: parsedDeliveryFee }),
     })
-      .then(response => response.json())
-      .then(responseData => {
+      .then((response) => response.json())
+      .then((responseData) => {
         if (responseData.success) {
           // Handle success
-          Alert.alert("Success", "Customer details saved successfully, Waiting for uploading image");
+          Alert.alert(
+            "Success",
+            "Customer details saved successfully, Waiting for uploading image"
+          );
         } else {
           // Handle failure
           Alert.alert("Error", responseData.error || "Unknown error");
         }
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("Error submitting data:", error.message);
         Alert.alert("Error", "Error submitting data. Please try again.");
         return;
@@ -54,10 +64,9 @@ const CustomerScreen = ({ route,navigation }) => {
           body: JSON.stringify(userData),
         });
       })
-      .then(response => response.json())
-      .then(responseData => {
+      .then((response) => response.json())
+      .then((responseData) => {
         if (responseData.success) {
-          console.log('success');
         } else {
           const error = responseData.error || "Unknown error";
           Alert.alert("Error", error);
@@ -65,7 +74,7 @@ const CustomerScreen = ({ route,navigation }) => {
           return;
         }
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("Error during user registration:", error.message);
         Alert.alert("Error, Registration Error");
         route.params.navigateBack();
@@ -78,21 +87,21 @@ const CustomerScreen = ({ route,navigation }) => {
             Accept: "application/json",
             "Content-type": "multipart/form-data",
           },
-          body:formData,
+          body: formData,
         });
       })
-      .then(response => response.json())
-      .then(data => {
+      .then((response) => response.json())
+      .then((data) => {
         if (data.success) {
           Alert.alert("Success", "Use your email and password to login now");
-           navigation.navigate('login')
+          navigation.replace("login");
         } else {
           Alert.alert("Error", "Registration failed due to image");
           route.params.navigateBack();
           return;
         }
       })
-      .catch(error => {
+      .catch((error) => {
         Alert.alert("Error uploading image:", error.message);
         route.params.navigateBack();
 

@@ -73,31 +73,18 @@ const PrescriptionPlaceOrderScreen = ({ navigation, route }) => {
           }, {})
         );
 
-        console.log("Minimum Distance Rider:", minDistanceRider);
         setAssignedRider(minDistanceRider);
+        console.log(minDistanceRider.email);
+        const response = await fetch(
+          `http://${IP_ADDRESS}:5000/get-user-profile/${minDistanceRider.email}`
+        );
+        const userData = await response.json();
+        console.log(userData);
+        setRiderDetails(userData);
       }
     } catch (error) {
       console.error("Error fetching rider distances:", error);
     } finally {
-      const fetchData = async () => {
-        try {
-          console.log(assignedRider)
-          const response = await fetch(
-
-            `http://${IP_ADDRESS}:5000/get-user-profile/${assignedRider.email}`
-          );
-          const userData = await response.json();
-          console.log(userData)
-        } catch (error) {
-          console.error("Error fetching rider details:", error);
-        } finally {
-          setRiderDetails(userData);
-       
-          setLoading(false);
-        }
-      };
-
-      fetchData();
       setLoading(false);
     }
   };
@@ -123,7 +110,7 @@ const PrescriptionPlaceOrderScreen = ({ navigation, route }) => {
     console.log(prescriptionLink);
     // Create an array with prescription link as an object
     const orderDetails = [{ prescriptionLink }];
-      console.log(switchOn)
+    console.log(switchOn);
     const orderData = {
       customerID: customerEmailData.email,
       riderId: assignedRider.email,
@@ -133,9 +120,9 @@ const PrescriptionPlaceOrderScreen = ({ navigation, route }) => {
       isPrescription: true,
       orderDetails: orderDetails,
       storeId: store.storeID,
-      isIdentityHidden:switchOn
+      isIdentityHidden: switchOn,
     };
-
+    console.log(orderData);
     try {
       const response = await fetch(`http://${IP_ADDRESS}:5000/place-order`, {
         method: "POST",
@@ -156,7 +143,7 @@ const PrescriptionPlaceOrderScreen = ({ navigation, route }) => {
           riderId: assignedRider.email,
           ownerId: store.ownerEmail,
           customerId: customerEmailData.email,
-          dateOfNotiifcation: new Date().toLocaleString()
+          dateOfNotiifcation: new Date().toLocaleString(),
         };
 
         const notificationResponse = await fetch(
@@ -171,7 +158,6 @@ const PrescriptionPlaceOrderScreen = ({ navigation, route }) => {
         );
 
         if (notificationResponse.ok) {
-          console.log("Notification added successfully");
           navigation.replace("HomeCustomer");
         } else {
           throw new Error("Failed to add notification");

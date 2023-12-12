@@ -1,5 +1,5 @@
-import IP_ADDRESS from '../../config/config';
-import React, { useState } from 'react';
+import IP_ADDRESS from "../../config/config";
+import React, { useState } from "react";
 import {
   Text,
   ScrollView,
@@ -7,14 +7,16 @@ import {
   TextInput,
   Image,
   Alert,
-  View, 
-} from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import { styles } from '../styles/styles';
-import MapComponent from '../MapView/MapInputComponent'; 
-import { Appbar } from 'react-native-paper';
+  View,
+} from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import { styles } from "../styles/styles";
+import MapComponent from "../MapView/MapInputComponent";
+import { Appbar } from "react-native-paper";
 
+// Functional component 'Signup'
 const Signup = ({ navigation }) => {
+  // State variables to manage form data
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -27,22 +29,36 @@ const Signup = ({ navigation }) => {
   const [currentLocation, setCurrentLocation] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [formData, setFormData] = useState(null);
+
+  // Error state variables for each input field
+  const [firstNameError, setFirstNameError] = useState(null);
+  const [lastNameError, setLastNameError] = useState(null);
+  const [emailError, setEmailError] = useState(null);
+  const [passwordError, setPasswordError] = useState(null);
+  const [contactNumberError, setContactNumberError] = useState(null);
+  const [cityNearByError, setCityNearByError] = useState(null);
+  const [roleError, setRoleError] = useState(null);
+
+  // Function to handle location selection
   const handleLocationSelection = (coordinates) => {
     setSelectedLocation(coordinates);
   };
 
+  // Function to open image library
   const openImageLibrary = () => {
     ImagePicker.requestMediaLibraryPermissionsAsync()
       .then(({ status }) => {
         if (status !== "granted") {
-          throw new Error("Sorry, we need camera roll permissions to make this work!");
+          throw new Error(
+            "Sorry, we need camera roll permissions to make this work!"
+          );
         }
         return ImagePicker.launchImageLibraryAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
           allowsEditing: true,
         });
       })
-      .then(response => {
+      .then((response) => {
         if (!response.canceled) {
           const uri = response.uri;
           const name = new Date().getTime() + "_profile";
@@ -53,45 +69,72 @@ const Signup = ({ navigation }) => {
 
           setSelectedImage(uri);
           setFormData(newFormData);
-          console.log(formData) 
         }
       })
-      .catch(error => {
-        console.error('Error during image selection:', error.message);
-        Alert.alert('Error', 'An error occurred during image selection. Please try again.');
+      .catch((error) => {
+        console.error("Error during image selection:", error.message);
+        Alert.alert(
+          "Error",
+          "An error occurred during image selection. Please try again."
+        );
       });
   };
 
+  // Function to navigate to login screen
   const navigateToLogin = () => {
-    // Navigate to the signup screen
-    navigation.navigate('login');
+    navigation.replace("login");
   };
-
   const handleSignup = () => {
+    // Clear previous error messages
+    setFirstNameError(null);
+    setLastNameError(null);
+    setEmailError(null);
+    setPasswordError(null);
+    setContactNumberError(null);
+    setCityNearByError(null);
+    setRoleError(null);
+
+    // Validation for empty or invalid data
+    if (!firstName || !/^[a-zA-Z]+$/.test(firstName)) {
+      setFirstNameError("First name must be alphabetical");
+    }
+
+    if (!lastName || !/^[a-zA-Z]+$/.test(lastName)) {
+      setLastNameError("Last name must be alphabetical");
+    }
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setEmailError("Invalid email format");
+    }
+
+    if (!password) {
+      setPasswordError("Password is required");
+    }
+
+    if (!contactNumber || !/^\d{11}$/.test(contactNumber)) {
+      setContactNumberError("Invalid contact number");
+    }
+
+    if (!cityNearBy) {
+      setCityNearByError("City nearby is required");
+    }
+
+    if (!role) {
+      setRoleError("Role is required");
+    }
+
+    // Check if there are any errors
     if (
-      !firstName ||
-      !lastName ||
-      !email ||
-      !password ||
-      !contactNumber ||
-      !cityNearBy ||
-      !role ||
-      !selectedImage ||
-      !selectedLocation
+      firstNameError ||
+      lastNameError ||
+      emailError ||
+      passwordError ||
+      contactNumberError ||
+      cityNearByError ||
+      roleError
     ) {
-      Alert.alert("Error", "Fill all fields");
-      return;
-    }
-    if (!/^[a-zA-Z]+$/.test(firstName) || !/^[a-zA-Z]+$/.test(lastName)) {
-      Alert.alert("Error", "Names must be alphabetical");
-      return;
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      Alert.alert("Error", "Invalid email format");
-      return;
-    }
-    if (!/^\d{11}$/.test(contactNumber)) {
-      Alert.alert("Error", "Invalid Contact number");
+      // If there are errors, display an alert or handle them accordingly
+      Alert.alert("Error", "Please fix the errors before proceeding");
       return;
     }
 
@@ -119,15 +162,13 @@ const Signup = ({ navigation }) => {
       .then((responseData) => {
         if (responseData.success) {
           // If validation is successful, proceed with signup
-          console.log("User data validated successfully");
-          
+         
           // Proceed with the rest of your signup logic
-          console.log(formData)
           navigation.navigate(`${role}`, {
             userData,
             image: formData,
             navigateBack: () => {
-              navigation.navigate('signup');
+              navigation.navigate("signup");
             },
           });
         } else {
@@ -137,52 +178,98 @@ const Signup = ({ navigation }) => {
       })
       .catch((error) => {
         console.error("Error during user data validation:", error.message);
-        Alert.alert("Error", "Error during user data validation. Please try again.");
+        Alert.alert(
+          "Error",
+          "Error during user data validation. Please try again."
+        );
       });
-  };  return (
+  };
+  return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text  style={styles.title}>Sign Up</Text>
+      {/* Title */}
+      <Text style={styles.title}>Sign Up</Text>
+
+      {/* Error message */}
       {errorMessage && <Text style={styles.error}>{errorMessage}</Text>}
+
+      {/* Input container */}
       <View style={styles.inputContainer}>
+        {/* First Name */}
+        {firstNameError && <Text style={styles.error}>{firstNameError}</Text>}
+
         <TextInput
-          style={styles.input}
+          style={[
+            styles.input,
+            firstNameError && styles.inputError, // Highlight border red on error
+          ]}
           placeholder="First Name"
           value={firstName}
           onChangeText={setFirstName}
+          onBlur={() =>
+            setFirstNameError(!firstName ? "First name is required" : null)
+          }
         />
+        {lastNameError && <Text style={styles.error}>{lastNameError}</Text>}
+
         <TextInput
-          style={styles.input}
+          style={[styles.input, lastNameError && styles.inputError]}
           placeholder="Last Name"
           value={lastName}
           onChangeText={setLastName}
+          onBlur={() =>
+            setLastNameError(!lastName ? "Last name is required" : null)
+          }
         />
+        {emailError && <Text style={styles.error}>{emailError}</Text>}
+
         <TextInput
-          style={styles.input}
-          placeholder="Email"
+          style={[styles.input, emailError && styles.inputError]}
+          placeholder="Email (include @)"
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
+          onBlur={() => setEmailError(!email ? "Email is required" : null)}
         />
+        {passwordError && <Text style={styles.error}>{passwordError}</Text>}
+
         <TextInput
-          style={styles.input}
-          placeholder="Password"
+          style={[styles.input, passwordError && styles.inputError]}
+          placeholder="Password (alphanumeric of min 6-char)"
           value={password}
           onChangeText={setPassword}
           secureTextEntry
+          onBlur={() =>
+            setPasswordError(!password ? "Password is required" : null)
+          }
         />
+        {contactNumberError && (
+          <Text style={styles.error}>{contactNumberError}</Text>
+        )}
+
         <TextInput
-          style={styles.input}
-          placeholder="Contact Number"
+          style={[styles.input, contactNumberError && styles.inputError]}
+          placeholder="Contact Number (eg 03211234567)"
           value={contactNumber}
           onChangeText={setContactNumber}
           keyboardType="phone-pad"
+          onBlur={() =>
+            setContactNumberError(
+              !contactNumber ? "Contact number is required" : null
+            )
+          }
         />
+        {cityNearByError && <Text style={styles.error}>{cityNearByError}</Text>}
+
         <TextInput
-          style={styles.input}
+          style={[styles.input, cityNearByError && styles.inputError]}
           placeholder="City Nearby"
           value={cityNearBy}
           onChangeText={setCityNearBy}
+          onBlur={() =>
+            setCityNearByError(!cityNearBy ? "City nearby is required" : null)
+          }
         />
+
         <MapComponent onSelectLocation={handleLocationSelection} />
 
         <View style={styles.uploadContainer}>
@@ -256,7 +343,6 @@ const Signup = ({ navigation }) => {
         </TouchableOpacity>
       </View>
     </ScrollView>
-    
   );
 };
 

@@ -1,14 +1,21 @@
 // PlaceOrderScreen.js
-import React, { useState, useEffect } from 'react';
-import { View, ScrollView, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
-import { Appbar, Button, Title } from 'react-native-paper';
-import { useSelector, useDispatch } from 'react-redux';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import IP_ADDRESS from '../../config/config';
-import { clearCart } from '../../Components/Cart/CartSlice';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
+import { Appbar, Button, Title } from "react-native-paper";
+import { useSelector, useDispatch } from "react-redux";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import IP_ADDRESS from "../../config/config";
+import { clearCart } from "../../Components/Cart/CartSlice";
 
-const PlaceOrderScreen = ({ navigation,route }) => {
-  const {customerContact}=route.params
+const PlaceOrderScreen = ({ navigation, route }) => {
+  const { customerContact } = route.params;
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart.cartItems);
   const storeID = useSelector((state) => state.cart.storeInfo);
@@ -16,10 +23,13 @@ const PlaceOrderScreen = ({ navigation,route }) => {
   const [riderDistances, setRiderDistances] = useState({});
   const [assignedRider, setAssignedRider] = useState({});
   const [store, setStore] = useState({});
-  const [customerEmail, setCustomerEmail] = useState('');
+  const [customerEmail, setCustomerEmail] = useState("");
 
   const calculateSubtotal = () => {
-    return cartItems.reduce((subtotal, item) => subtotal + item.price * item.quantity, 0);
+    return cartItems.reduce(
+      (subtotal, item) => subtotal + item.price * item.quantity,
+      0
+    );
   };
 
   const calculateOrderTotal = (subtotal, shippingCharges) => {
@@ -32,7 +42,9 @@ const PlaceOrderScreen = ({ navigation,route }) => {
         <Text style={styles.productName}>{item.name}</Text>
         <Text style={styles.productDetailsText}>Qty: {item.quantity}</Text>
         <Text style={styles.productDetailsText}>Unit Price: ${item.price}</Text>
-        <Text style={styles.productDetailsText}>Total Price: ${item.price * item.quantity}</Text>
+        <Text style={styles.productDetailsText}>
+          Total Price: ${item.price * item.quantity}
+        </Text>
       </View>
     ));
   };
@@ -41,15 +53,20 @@ const PlaceOrderScreen = ({ navigation,route }) => {
     setLoading(true);
 
     try {
-      const storeResponse = await fetch(`http://${IP_ADDRESS}:5000/get-a-store/${storeID}`);
+      const storeResponse = await fetch(
+        `http://${IP_ADDRESS}:5000/get-a-store/${storeID}`
+      );
       const storeData = await storeResponse.json();
       setStore(storeData.store);
 
-      const ridersString = await AsyncStorage.getItem('riders');
-      const riderEmailsArray = ridersString.split(',');
+      const ridersString = await AsyncStorage.getItem("riders");
+      const riderEmailsArray = ridersString.split(",");
 
-      const [longitude, latitude] = storeData.store.store_address.split(',').map(parseFloat);
+      const [longitude, latitude] = storeData.store.store_address
+        .split(",")
+        .map(parseFloat);
       const requests = riderEmailsArray.map(async (riderEmail) => {
+        console.log(riderEmail)
         const response = await fetch(
           `http://${IP_ADDRESS}:5000/get-distance-of-rider/${riderEmail}/${latitude}/${longitude}`
         );
@@ -61,7 +78,7 @@ const PlaceOrderScreen = ({ navigation,route }) => {
 
       // Filter out results with errors (e.g., no rider found)
       const validResults = results.filter((result) => !result.error);
-
+      console.log(validResults)
       if (validResults.length > 0) {
         const minDistanceRider = validResults.reduce((min, result) =>
           result.distance < min.distance ? result : min
@@ -75,25 +92,27 @@ const PlaceOrderScreen = ({ navigation,route }) => {
           }, {})
         );
 
-        console.log('Minimum Distance Rider:', minDistanceRider);
         setAssignedRider(minDistanceRider);
       }
     } catch (error) {
-      console.error('Error fetching rider distances:', error);
+      console.error("Error fetching rider distances:", error);
     } finally {
       setLoading(false);
     }
   };
 
   const placeOrder = async () => {
-    console.log(customerContact)
-    const customerEmailResponse = await fetch(`http://${IP_ADDRESS}:5000/get-email`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ contactNumber: customerContact }),
-    });
+    console.log(customerContact);
+    const customerEmailResponse = await fetch(
+      `http://${IP_ADDRESS}:5000/get-email`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ contactNumber: customerContact }),
+      }
+    );
     const customerEmailData = await customerEmailResponse.json();
     console.log(customerEmailData.email);
     setCustomerEmail(customerEmailData.email);
@@ -111,50 +130,78 @@ const PlaceOrderScreen = ({ navigation,route }) => {
       riderId: assignedRider.email,
       ownerId: store.ownerEmail,
       shippingCharges: assignedRider.fee,
-      orderStatus: 'in-progress',
+      orderStatus: "in-progress",
       isPrescription: false,
       orderDetails: orderDetails,
+      storeId: store.storeID,
     };
 
     try {
       const response = await fetch(`http://${IP_ADDRESS}:5000/place-order`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(orderData),
       });
 
       if (response.ok) {
+        // Extract order ID from the response
+        const newOrder = await response.json();
+
         // Clear the cart in Redux store and Cart table
         dispatch(clearCart());
 
         // Delete item from the cart based on customer_contact
         await fetch(`http://${IP_ADDRESS}:5000/delete/${customerContact}`, {
-          method: 'DELETE',
+          method: "DELETE",
         });
 
         setLoading(false);
-        navigation.navigate('OrderAnimation', {
-          assignedRider,
-          storeEndTime: store.endTime,
-          customerEmail: customerEmailData.email,
-          orderTotal: calculateSubtotal(),
-          shippingCharges: assignedRider.fee,
-          orderDetails: cartItems.map((item) => ({
-            name:item.name,
-            prodId: item.productID,
-            quantity: item.quantity,
-            subtotal: item.price * item.quantity,
-          })),
-        });
-     
-     
+
+        // Now that the place order request is completed, make the notification request
+        const notificationData = {
+          orderID: newOrder.orderID,
+          riderId: assignedRider.email,
+          ownerId: store.ownerEmail,
+          customerId: customerEmailData.email,
+          dateOfNotiifcation: new Date().toLocaleString()
+        };
+
+        const notificationResponse = await fetch(
+          `http://${IP_ADDRESS}:5000/notifications`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(notificationData),
+          }
+        );
+
+        if (notificationResponse.ok) {
+          
+          navigation.navigate("OrderAnimation", {
+            assignedRider,
+            storeEndTime: store.endTime,
+            customerEmail: customerEmailData.email,
+            orderTotal: calculateSubtotal(),
+            shippingCharges: assignedRider.fee,
+            orderDetails: cartItems.map((item) => ({
+              name: item.name,
+              prodId: item.productID,
+              quantity: item.quantity,
+              subtotal: item.price * item.quantity,
+            })),
+          });
+        } else {
+          throw new Error("Failed to add notification");
+        }
       } else {
-        throw new Error('Failed to place order');
+        throw new Error("Failed to place order");
       }
     } catch (error) {
-      console.error('Error placing order:', error);
+      console.error("Error placing order:", error);
       setLoading(false);
     }
   };
@@ -186,7 +233,9 @@ const PlaceOrderScreen = ({ navigation,route }) => {
           {cartItems.length === 0 ? (
             <View style={styles.emptyCartContainer}>
               <Text style={styles.emptyCartText}>Empty cart</Text>
-              <TouchableOpacity onPress={() => navigation.navigate('HomeCustomer')}>
+              <TouchableOpacity
+                onPress={() => navigation.replace("HomeCustomer")}
+              >
                 <Text style={styles.browseStoresText}>Browse to Stores</Text>
               </TouchableOpacity>
             </View>
@@ -199,7 +248,9 @@ const PlaceOrderScreen = ({ navigation,route }) => {
       {/* Order Subtotal */}
       {cartItems.length > 0 && (
         <View style={styles.subtotalContainer}>
-          <Text style={styles.subtotalText}>Order Subtotal: ${calculateSubtotal()}</Text>
+          <Text style={styles.subtotalText}>
+            Order Subtotal: ${calculateSubtotal()}
+          </Text>
         </View>
       )}
 
@@ -207,7 +258,9 @@ const PlaceOrderScreen = ({ navigation,route }) => {
       {cartItems.length > 0 && (
         <View style={styles.subtotalContainer}>
           <Text style={styles.subtotalText}>
-            {loading ? 'Shipping charges:  Calculating...' : `Shipping charges:  $${assignedRider.fee}`}
+            {loading
+              ? "Shipping charges:  Calculating..."
+              : `Shipping charges:  $${assignedRider.fee}`}
           </Text>
         </View>
       )}
@@ -218,8 +271,11 @@ const PlaceOrderScreen = ({ navigation,route }) => {
           <Text style={styles.subtotalText}>
             Order Total:
             {!loading
-              ? ` $${calculateOrderTotal(calculateSubtotal(), assignedRider.fee)}`
-              : '  Calculating...'}
+              ? ` $${calculateOrderTotal(
+                  calculateSubtotal(),
+                  assignedRider.fee
+                )}`
+              : "  Calculating..."}
           </Text>
         </View>
       )}
@@ -235,7 +291,11 @@ const PlaceOrderScreen = ({ navigation,route }) => {
 
       {/* Place Order Button */}
       {!loading && cartItems.length > 0 && (
-        <Button mode="contained" style={styles.checkoutButton} onPress={placeOrder}>
+        <Button
+          mode="contained"
+          style={styles.checkoutButton}
+          onPress={placeOrder}
+        >
           Place Order
         </Button>
       )}
@@ -246,59 +306,59 @@ const PlaceOrderScreen = ({ navigation,route }) => {
 const styles = StyleSheet.create({
   // Style definitions for the CheckoutScreen
   orderDetailsTitle: {
-    marginLeft: '3%',
-    color: '#25d366',
-    fontWeight: '700',
-    marginTop: '2%',
+    marginLeft: "3%",
+    color: "#25d366",
+    fontWeight: "700",
+    marginTop: "2%",
   },
   cartItemContainer: {
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "column",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     margin: 10,
     padding: 10,
     borderRadius: 10,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     elevation: 3,
   },
   productName: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   productDetailsText: {
     fontSize: 14,
-    color: 'gray',
+    color: "gray",
   },
   subtotalContainer: {
     margin: 10,
   },
   subtotalText: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   checkoutButton: {
     margin: 16,
-    backgroundColor: '#25d366',
+    backgroundColor: "#25d366",
   },
   emptyCartContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: '60%',
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: "60%",
   },
   emptyCartText: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: 'black',
+    fontWeight: "bold",
+    color: "black",
   },
   browseStoresText: {
     fontSize: 16,
-    color: '#25d366',
+    color: "#25d366",
     marginTop: 10,
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingText: {
     marginTop: 10,

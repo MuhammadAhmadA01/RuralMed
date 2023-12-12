@@ -1,24 +1,28 @@
 const { Sequelize } = require("sequelize");
 const { sequelize, DataTypes } = require("../../config/config");
-const owner = sequelize.define('owners', {
+const owner = sequelize.define("owners", {
   ownerID: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true,
     allowNull: false,
   },
- 
+
   cnic: {
     type: DataTypes.STRING,
     allowNull: false,
     unique: true,
   },
-  email:{
+  email: {
     type: DataTypes.STRING,
-    allowNull:false,
-    unique:true
+    allowNull: false,
+    unique: true,
   },
-  
 });
-sequelize.sync().then(()=>{console.log('created owner')}).catch()
+sequelize
+  .sync()
+  .then(() => {
+    console.log("created owner");
+  })
+  .catch();
 module.exports = owner;

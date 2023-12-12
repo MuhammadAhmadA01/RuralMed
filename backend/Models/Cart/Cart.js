@@ -11,7 +11,7 @@ const Cart = sequelize.define("cart", {
   customer_contact: {
     type: DataTypes.STRING,
     allowNull: false,
-    unique:true
+    unique: true,
   },
   cart_details: {
     type: DataTypes.JSONB, // Use JSONB for array of objects

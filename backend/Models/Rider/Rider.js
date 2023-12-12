@@ -2,8 +2,17 @@
 const { Sequelize } = require("sequelize");
 const { sequelize, DataTypes } = require("../../config/config");
 
-
-const Rider = sequelize.define('riders', {
+const Rider = sequelize.define("riders", {
+  riderID: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+    allowNull: false,
+  },
+  workingArea: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
   cnic: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -13,16 +22,21 @@ const Rider = sequelize.define('riders', {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
-  email:{
+  email: {
     type: DataTypes.STRING,
-    allowNull:false,
-    unique:true
+    allowNull: false,
+    unique: true,
   },
   availabilityStatus: {
     type: DataTypes.STRING,
     allowNull: false,
   },
 });
-sequelize.sync().then(()=>{console.log('created riders')}).catch()
+sequelize
+  .sync()
+  .then(() => {
+    console.log("created riders");
+  })
+  .catch();
 
 module.exports = Rider;

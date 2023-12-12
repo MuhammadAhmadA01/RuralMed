@@ -54,16 +54,13 @@ const RiderHomeScreen = ({ navigation }) => {
         const statsResponse = await fetch(
           `http://${IP_ADDRESS}:5000/rider-monthly-stats/${email}`
         );
-        console.log(statsResponse);
         const statsData = await statsResponse.json();
-        console.log(statsData);
         setPrevMonthEarning(statsData.prevMonthEarning);
         setPrevMonthOrders(statsData.prevMonthOrders);
         setCurrentMonthEarning(statsData.currentMonthEarning);
         setCurrentMonthOrders(statsData.currentMonthOrders);
         setInProgressOrders(statsData.inProgressOrders);
 
-    
         setRiderEmail(email);
 
         const profileResponse = await fetch(

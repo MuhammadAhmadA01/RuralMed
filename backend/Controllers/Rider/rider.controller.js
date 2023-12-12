@@ -1,33 +1,40 @@
-const Riders = require('../../Models/Rider/Rider');
+const Riders = require("../../Models/Rider/Rider");
+const USER = require("../../Models/User/User");
+const Orders = require("../../Models/Order/Order");
+const { Sequelize, literal, fn, col, Op } = require("sequelize");
+const { sequelize, DataTypes } = require("../../config/config");
+
 const createRider = (req, res) => {
-  const { cnic, deliveryFee, email, availabilityStatus } = req.body;
+  const { cnic, deliveryFee, email, availabilityStatus, workingArea } =
+    req.body;
   Riders.findOne({ where: { email } })
-    .then(existingRiderEmail => {
+    .then((existingRiderEmail) => {
       if (existingRiderEmail) {
-        
-        throw {status:400, message: 'email is already in use' };
+        throw { status: 400, message: "email is already in use" };
       }
-      return Riders.findOne({ where: { cnic } })
-        .then(existingRiderCnic => {
-          if (existingRiderCnic) {
-            throw {status:400, message: 'CNIC is already in use' };
-          }
+      return Riders.findOne({ where: { cnic } }).then((existingRiderCnic) => {
+        if (existingRiderCnic) {
+          throw { status: 400, message: "CNIC is already in use" };
+        }
         return Riders.create({
-            cnic,
-            deliveryFee,
-            email,
-            availabilityStatus,
-          });
+          cnic,
+          deliveryFee,
+          email,
+          availabilityStatus,
+          workingArea,
         });
+      });
     })
-    .then(newRider => {
-      res.status(201).json(newRider);
+    .then((newRider) => {
+      res.status(201).json({ success: true, newRider });
     })
-    .catch(error => {
-        console.error('Error creating rider:', error);
-        const status = error.status || 500;
-        res.status(status).json({ error: error.message || 'Internal Server Error' });
-  });
+    .catch((error) => {
+      console.error("Error creating rider:", error);
+      const status = error.status || 500;
+      res
+        .status(status)
+        .json({ error: error.message || "Internal Server Error" });
+    });
 };
 const viewProfile = (req, res) => {
   const { email } = req.params;
@@ -73,13 +80,51 @@ const viewProfile = (req, res) => {
       res.status(500).json({ error: "Internal Server Error" });
     });
 };
+const updateAvailabilityStatus = async (req, res) => {
+  const { email, status } = req.params;
 
+  try {
+    // Find the rider in the Rider table based on the provided email
+    await Riders.update({ availabilityStatus: status }, { where: { email } });
+
+    // Fetch the updated rider after the update
+    // Return the updated rider
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error("Error updating availabilityStatus:", error);
+    return res.status(500).json({
+      error: "An error occurred while updating availabilityStatus",
+      success: false,
+    });
+  }
+};
+const getRiderProfile = async (req, res) => {
+  const { email } = req.params;
+  try {
+    // Find the rider in the Rider table based on the provided email
+    const rider = await Riders.findOne({
+      where: { email },
+    });
+
+    // If the rider is not found, return an error
+    if (!rider) {
+      return res.status(404).json({ error: "Rider not found", success: false });
+    }
+
+    // Return the rider's profile
+    return res.status(200).json({ rider, success: true });
+  } catch (error) {
+    console.error("Error getting rider profile:", error);
+    return res
+      .status(500)
+      .json({ error: "An error occurred while getting rider profile" });
+  }
+};
 const viewOrders = (req, res) => {
-  const { id } = req.params;
-
+  const { email } = req.params;
   Orders.findAll({
     where: {
-      riderId: id,
+      riderId: email,
     },
   })
     .then((orders) => {
@@ -95,12 +140,24 @@ const getRiderMonthlyStats = (req, res) => {
 
   // Calculate the start and end date of the current month
   const currentDate = new Date();
-  const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+  const startDate = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    1
+  );
   const endDate = currentDate;
 
   // Calculate the start and end date of the previous month
-  const lastMonthStartDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
-  const lastMonthEndDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
+  const lastMonthStartDate = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth() - 1,
+    1
+  );
+  const lastMonthEndDate = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    0
+  );
 
   let prevMonthResults;
   let currentMonthStats; // Declare variable outside the scope
@@ -108,8 +165,18 @@ const getRiderMonthlyStats = (req, res) => {
   // Earning and number of orders in previous month from current date
   Orders.findOne({
     attributes: [
-      [sequelize.literal('SUM(CASE WHEN "orderStatus" = \'completed\' AND "dateOfOrder" BETWEEN :start AND :end THEN "shippingCharges" ELSE 0 END)'), 'prevMonthEarning'],
-      [sequelize.literal('COUNT(CASE WHEN "orderStatus" = \'completed\' AND "dateOfOrder" BETWEEN :start AND :end THEN 1 END)'), 'prevMonthOrders'],
+      [
+        sequelize.literal(
+          'SUM(CASE WHEN "orderStatus" = \'completed\' AND "dateOfOrder" BETWEEN :start AND :end THEN "shippingCharges" ELSE 0 END)'
+        ),
+        "prevMonthEarning",
+      ],
+      [
+        sequelize.literal(
+          'COUNT(CASE WHEN "orderStatus" = \'completed\' AND "dateOfOrder" BETWEEN :start AND :end THEN 1 END)'
+        ),
+        "prevMonthOrders",
+      ],
     ],
     where: {
       riderId,
@@ -121,9 +188,18 @@ const getRiderMonthlyStats = (req, res) => {
       // Earning and number of orders in current month from 1st date to current date
       return Orders.findOne({
         attributes: [
-          [sequelize.literal('SUM(CASE WHEN "orderStatus" = \'completed\' AND "dateOfOrder" BETWEEN :start AND :end THEN "shippingCharges" ELSE 0 END)'), 'currentMonthEarning'],
-          [sequelize.literal('COUNT(CASE WHEN "orderStatus" = \'completed\' AND "dateOfOrder" BETWEEN :start AND :end THEN 1 END)'), 'currentMonthOrders'],
-   
+          [
+            sequelize.literal(
+              'SUM(CASE WHEN "orderStatus" = \'completed\' AND "dateOfOrder" BETWEEN :start AND :end THEN "shippingCharges" ELSE 0 END)'
+            ),
+            "currentMonthEarning",
+          ],
+          [
+            sequelize.literal(
+              'COUNT(CASE WHEN "orderStatus" = \'completed\' AND "dateOfOrder" BETWEEN :start AND :end THEN 1 END)'
+            ),
+            "currentMonthOrders",
+          ],
         ],
         where: {
           riderId,
@@ -132,34 +208,40 @@ const getRiderMonthlyStats = (req, res) => {
       });
     })
     .then((currentMonthResults) => {
-currentMonthStats=currentMonthResults.get({ plain: true })
+      currentMonthStats = currentMonthResults.get({ plain: true });
       return Orders.count({
         where: {
           riderId,
-          orderStatus: 'in-progress',
+          orderStatus: "in-progress",
           dateOfOrder: {
             [Op.between]: [startDate, endDate],
           },
         },
-      })
-        .then((inProgressOrders) => {
-          // Construct the final response
-          const result = {
-            prevMonthEarning: prevMonthResults.prevMonthEarning || 0,
-            prevMonthOrders: prevMonthResults.prevMonthOrders || 0,
-            currentMonthEarning: currentMonthStats.currentMonthEarning || 0,
-            currentMonthOrders: currentMonthStats.currentMonthOrders || 0,
-            inProgressOrders,
-          };
+      }).then((inProgressOrders) => {
+        // Construct the final response
+        const result = {
+          prevMonthEarning: prevMonthResults.prevMonthEarning || 0,
+          prevMonthOrders: prevMonthResults.prevMonthOrders || 0,
+          currentMonthEarning: currentMonthStats.currentMonthEarning || 0,
+          currentMonthOrders: currentMonthStats.currentMonthOrders || 0,
+          inProgressOrders,
+        };
 
-          // Send the response
-          res.json(result);
-        });
+        // Send the response
+        res.json(result);
+      });
     })
     .catch((error) => {
-      console.error('Error:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      console.error("Error:", error);
+      res.status(500).json({ error: "Internal Server Error" });
     });
 };
 
-module.exports = { createRider,viewProfile,viewOrders,getRiderMonthlyStats };
+module.exports = {
+  createRider,
+  viewProfile,
+  viewOrders,
+  getRiderMonthlyStats,
+  updateAvailabilityStatus,
+  getRiderProfile,
+};

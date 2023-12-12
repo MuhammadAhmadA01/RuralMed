@@ -70,20 +70,20 @@ const RiderOrdersScreen = ({ navigation }) => {
   };
   const parseOrderDate = (dateString) => {
     const orderDate = new Date(dateString);
-    
+
     // Format the date (e.g., "2023-12-14")
-    const date = orderDate.toISOString().split('T')[0];
-  
+    const date = orderDate.toISOString().split("T")[0];
+
     // Format the time (e.g., "14:16:44")
-    const time = orderDate.toISOString().split('T')[1].split('.')[0];
-  
+    const time = orderDate.toISOString().split("T")[1].split(".")[0];
+
     // Format the time in 12-hour format with AM/PM (e.g., "02:16 PM")
-    const formattedTime = orderDate.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
+    const formattedTime = orderDate.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
       hour12: true,
     });
-  
+
     return {
       date,
       time,

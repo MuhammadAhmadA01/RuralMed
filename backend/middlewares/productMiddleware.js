@@ -1,5 +1,4 @@
 const { body, validationResult } = require("express-validator");
-
 const productValidationRules = [
   body("storeId")
     .isInt()

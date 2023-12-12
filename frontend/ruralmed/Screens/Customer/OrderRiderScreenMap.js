@@ -27,13 +27,13 @@ const OrderConfirmationScreen = ({ route, navigation }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        console.log(assignedRider.email)
+        console.log(assignedRider.email);
         const response = await fetch(
           `http://${IP_ADDRESS}:5000/get-user-profile/${assignedRider.email}`
         );
         const userData = await response.json();
         setRiderDetails(userData);
-        console.log(riderDetails)
+        console.log(riderDetails);
       } catch (error) {
         console.error("Error fetching rider details:", error);
       } finally {
