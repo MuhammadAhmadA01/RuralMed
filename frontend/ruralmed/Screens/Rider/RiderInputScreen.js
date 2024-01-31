@@ -153,7 +153,22 @@ const RiderScreen = ({ route, navigation }) => {
         onChangeText={setDeliveryFee}
         keyboardType="numeric"
       />
-      <MapComponent onSelectLocation={handleLocationSelection} />
+    <TouchableOpacity
+ 
+ >
+   <Text style={{  fontSize:16 }}>
+     Select Working Area on map:{' '}
+     <Text  onPress={() => {
+     navigation.navigate("MapInput", {
+       onSelectLocation: handleLocationSelection,
+     });
+     console.log(selectedLocation);
+   }} style={[styles.signupLink,{ fontSize: 20, marginLeft:'10px', textDecorationLine:"underline", color:"#25d366" }]}>
+       Click here
+     </Text>
+   </Text>
+ </TouchableOpacity >
+ 
 
       <View style={styles.switchContainer}>
         <Text style={styles.switchLabel}>Availability</Text>

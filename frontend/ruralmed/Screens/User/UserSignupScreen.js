@@ -84,6 +84,11 @@ const Signup = ({ navigation }) => {
   const navigateToLogin = () => {
     navigation.replace("login");
   };
+  const navigateToMapScreen = () => {
+    navigation.navigate("MapInput", {
+      onSelectLocation: handleLocationSelection,
+    });
+  };
   const handleSignup = () => {
     // Clear previous error messages
     setFirstNameError(null);
@@ -269,10 +274,23 @@ const Signup = ({ navigation }) => {
             setCityNearByError(!cityNearBy ? "City nearby is required" : null)
           }
         />
+<TouchableOpacity
+ 
+>
+  <Text style={{  fontSize:16 }}>
+    Select location on map:{' '}
+    <Text  onPress={() => {
+    navigation.navigate("MapInput", {
+      onSelectLocation: handleLocationSelection,
+    });
+    console.log(selectedLocation);
+  }} style={[styles.signupLink,{ fontSize: 20, marginLeft:'10px', textDecorationLine:"underline", color:"#25d366" }]}>
+      Click here
+    </Text>
+  </Text>
+</TouchableOpacity >
 
-        <MapComponent onSelectLocation={handleLocationSelection} />
-
-        <View style={styles.uploadContainer}>
+        <View style={[styles.uploadContainer,{marginTop:'2%'}]}>
           <TouchableOpacity
             onPress={openImageLibrary}
             style={styles.uploadBtnContainer}

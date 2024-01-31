@@ -239,7 +239,22 @@ const StoreScreen = ({ navigation }) => {
           <Text style={styles.mapLabel}>End Time:</Text>
           <TimePicker onTimeSelected={handleEndTimeSelected} />
         </View>
-        <MapComponent onSelectLocation={handleLocationSelection} />
+        <TouchableOpacity
+ 
+ >
+   <Text style={{  fontSize:16 }}>
+     Select Store location on map:{' '}
+     <Text  onPress={() => {
+     navigation.navigate("MapInput", {
+       onSelectLocation: handleLocationSelection,
+     });
+     console.log(selectedLocation);
+   }} style={[styles.signupLink,{ fontSize: 20, marginLeft:'10px', textDecorationLine:"underline", color:"#25d366" }]}>
+       Click here
+     </Text>
+   </Text>
+ </TouchableOpacity >
+ 
         <RadioButton.Group
           onValueChange={(value) => setStoreType(value)}
           value={storeType}
