@@ -243,7 +243,34 @@ const getStoresByEmail = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error", success: false });
   }
 };
+const updateOrderStatus = (req, res) => {
+  try {
+    const { orderID, newStatus } = req.params;
+    
+    // Check if the provided orderID is valid
+    Orders.findByPk(orderID)
+      .then((order) => {
+        if (!order) {
+          throw { status: 404, message: "Order not found" };
+        }
 
+        // Update the orderStatus
+        return order.update({ orderStatus: newStatus });
+      })
+      .then((updatedOrder) => {
+        res.status(200).json({ success: true, updatedOrder });
+      })
+      .catch((error) => {
+        console.error("Error updating order status:", error);
+        const status = error.status || 500;
+        res.status(status).json({ error: error.message || "Internal Server Error" });
+      });
+  } catch (error) {
+    console.error("Error updating order status:", error);
+    const status = error.status || 500;
+    res.status(status).json({ error: error.message || "Internal Server Error" });
+  }
+};
 module.exports = {
   createOwner,
   addProduct,
@@ -251,4 +278,5 @@ module.exports = {
   viewOrders,
   getownerMonthlyStats,
   getStoresByEmail,
+  updateOrderStatus
 };
