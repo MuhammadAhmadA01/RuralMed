@@ -10,6 +10,8 @@ const Orders = require("../../Models/Order/Order");
 const USER = require("../../Models/User/User");
 const Rider = require("../../Models/Rider/Rider");
 const Store = require("../../Models/Store/Store");
+const Ratings=require('../../Models/Ratings/ratings')
+
 const createCustomer = (req, res) => {
   const { cnic, email, deliveryFee } = req.body;
 
@@ -559,6 +561,43 @@ const deleteCartItem = async (req, res) => {
       .json({ message: "Internal server error", success: false });
   }
 };
+const addRating = async (req, res) => {
+  try {
+    // Extract values from request body
+    const { order_id, rating_for_rider, rating_for_Owner, review } = req.body;
+
+    // Create a new rating entry in the database
+    const newRating = await Ratings.create({
+      order_id,
+      rating_for_rider,
+      rating_for_Owner,
+      review,
+    });
+
+    // Add code here to update hasReviewed for the corresponding order
+    const updatedOrder = await Orders.update(
+      { hasReviewed: true },
+      {
+        where: {
+          orderID:order_id,
+        },
+      }
+    );
+
+    // Check if the order was found and updated
+    if (updatedOrder[0] === 0) {
+      throw new Error('Order not found or not updated');
+    }
+
+    // Send a success response with the newly created rating
+    res.status(201).json({ success: true, rating: newRating });
+  } catch (error) {
+    // Handle errors
+    console.error(error);
+    res.status(500).json({ success: false, error: 'Internal Server Error' });
+  }
+};
+
 module.exports = {
   updateQuantity,
   removeFromCart,
@@ -573,4 +612,5 @@ module.exports = {
   calculateRiderDistance,
   addToCart,
   deleteCartItem,
+  addRating
 };
