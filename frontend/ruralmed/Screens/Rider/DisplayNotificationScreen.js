@@ -11,13 +11,12 @@ import {
   Linking,
 } from "react-native";
 import IP_ADDRESS from "../../config/config";
-import AppHeaderRider from "../../Components/RiderAppHeader"; // Replace 'path-to-AppHeaderRider' with the actual path
+import AppHeaderRider from "../../Components/Rider/RiderAppHeader"; 
 import { Ionicons } from "@expo/vector-icons";
-import ProductCard from "../../Components/ProductCard";
-import AppHeader from "../../Components/OwnerAppHeader";
+import ProductCard from "../../Components/Owner/ProductCard";
+import AppHeader from "../../Components/Owner/OwnerAppHeader";
 const windowWidth = Dimensions.get("window").width;
 
-// RiderOrderDetailScreen component
 const NotificationOrderDetailScreen = ({ route, navigation }) => {
   const { orderID, role } = route.params;
   const [orderDetails, setOrderDetails] = useState(null);
@@ -31,7 +30,6 @@ const NotificationOrderDetailScreen = ({ route, navigation }) => {
   const [storeLat, setStoreLat] = useState("");
   const [storeLong, setStoreLong] = useState("");
 
-  // Fetch order details
   useEffect(() => {
     const fetchOrderDetails = async () => {
       try {
@@ -43,7 +41,6 @@ const NotificationOrderDetailScreen = ({ route, navigation }) => {
         setOrderDetails(orderData.order);
 
         if (role === "Rider") {
-          // Fetch customer details
           const customerResponse = await fetch(
             `http://${IP_ADDRESS}:5000/get-user-profile/${orderData.order.customerID}`
           );
@@ -54,7 +51,6 @@ const NotificationOrderDetailScreen = ({ route, navigation }) => {
             .map(parseFloat);
           setCustomerLong(longitude);
           setCustomerLat(latitude);
-          // Fetch store details
           const storeResponse = await fetch(
             `http://${IP_ADDRESS}:5000/get-a-store/${orderData.order.storeId}`
           );
@@ -72,7 +68,6 @@ const NotificationOrderDetailScreen = ({ route, navigation }) => {
           const riderData = await riderResponse.json();
           setRiderDetails(riderData);
         }
-        // Fetch product details for each product in order
         if (!orderData.order.isPrescription) {
           const productDetailsPromises = orderData.order.orderDetails.map(
             async (product) => {
@@ -83,10 +78,7 @@ const NotificationOrderDetailScreen = ({ route, navigation }) => {
               return { ...product, productDetails: productData.product };
             }
           );
-
-          // Wait for all product details to be fetched
           const productDetails = await Promise.all(productDetailsPromises);
-          // Update order details with product details
           setOrderDetails((prevOrderDetails) => ({
             ...prevOrderDetails,
             orderDetails: productDetails,
@@ -102,18 +94,28 @@ const NotificationOrderDetailScreen = ({ route, navigation }) => {
     fetchOrderDetails();
   }, []);
 
-  const handleMarkAsCompleted = () => {
-    // Implement logic to mark the order as completed
-    console.log("Order marked as completed!");
+  
+  const handleUpdateOrder = async (orderStatus) => {
+    
+    const response = await fetch(
+      `http://${IP_ADDRESS}:5000/update-order/${orderID}/${orderStatus}`
+    );
+    const data = await response.json();
+    if (response.ok) {
+      console.log(orderDetails)
+      setOrderDetails((prevOrderDetails) => ({
+        ...prevOrderDetails,
+        orderStatus: orderStatus, 
+      }));
+     
+     
+    } else {
+      console.log("Error updatin order status:", data.message);
+    }
   };
-  const hanldeMarkAsPicked = () => {
-    console.log("picked");
-  };
-  const openGoogleMaps = (lat, long) => {
-    // Create a URL with the coordinates
-    const url = `https://www.google.com/maps/search/?api=1&query=${lat},${long}`;
 
-    // Open the URL using Linking
+  const openGoogleMaps = (lat, long) => {
+    const url = `https://www.google.com/maps/search/?api=1&query=${lat},${long}`;
     Linking.openURL(url).catch((err) =>
       console.error("Error opening Google Maps:", err)
     );
@@ -151,7 +153,6 @@ const NotificationOrderDetailScreen = ({ route, navigation }) => {
               />
             </>
           ) : (
-            // Display items
             orderDetails.orderDetails.map((product) => (
               <ProductCard key={product.prodId} product={product} />
             ))
@@ -269,14 +270,25 @@ const NotificationOrderDetailScreen = ({ route, navigation }) => {
         </View>
       </ScrollView>
 
-      {orderDetails.orderStatus === "in-progress" && role === "Owner" ? (
+      {(orderDetails.orderStatus == "in-progress" ||
+        orderDetails.orderStatus == "picked") &&
+      role == "Owner" ? (
         <>
           <TouchableOpacity
-            style={styles.signupButton}
-            onPress={hanldeMarkAsPicked}
+            style={[
+              styles.signupButton,
+              orderDetails.orderStatus == "picked" && styles.disabledButton,
+            ]}
+            onPress={() => handleUpdateOrder("picked")}
+            disabled={orderDetails.orderStatus == "picked"}
           >
-            <Text style={styles.signupButtonText}>Mark as Picked</Text>
+            <Text style={styles.signupButtonText}>
+              {orderDetails.orderStatus == "picked"
+                ? "Order already picked"
+                : "Mark as Picked"}
+            </Text>
           </TouchableOpacity>
+
           <TouchableOpacity
             style={styles.signupButton}
             onPress={() => navigation.replace(`Home${role}`)}
@@ -284,13 +296,23 @@ const NotificationOrderDetailScreen = ({ route, navigation }) => {
             <Text style={styles.signupButtonText}>Go to Home</Text>
           </TouchableOpacity>
         </>
-      ) : orderDetails.orderStatus === "picked" && role === "Rider" ? (
+      ) : (orderDetails.orderStatus === "picked" ||
+          orderDetails.orderStatus == "completed") &&
+        role === "Rider" ? (
         <>
           <TouchableOpacity
-            style={styles.signupButton}
-            onPress={handleMarkAsCompleted}
+            style={[
+              styles.signupButton,
+              orderDetails.orderStatus === "completed" && styles.disabledButton,
+            ]}
+            onPress={() => handleUpdateOrder("completed")}
+            disabled={orderDetails.orderStatus === "completed"}
           >
-            <Text style={styles.signupButtonText}>Mark Completed</Text>
+            <Text style={styles.signupButtonText}>
+              {orderDetails.orderStatus === "completed"
+                ? "Order already completed"
+                : "Mark Completed"}
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.signupButton}
@@ -311,12 +333,15 @@ const NotificationOrderDetailScreen = ({ route, navigation }) => {
   );
 };
 
-// Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff", // Change background color if needed
+    backgroundColor: "#fff", 
   },
+  disabledButton: {
+    backgroundColor: "grey",
+  },
+
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
@@ -354,7 +379,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#25d366",
     borderRadius: 20,
     paddingVertical: "2%",
-    //paddingHorizontal:"20%", // Use percentage for padding
     alignItems: "center",
     justifyContent: "center",
     marginTop: "2%",
@@ -362,7 +386,7 @@ const styles = StyleSheet.create({
   },
   signupButtonText: {
     color: "#fff",
-    fontSize: windowWidth * 0.04, // Use a percentage of the window width
+    fontSize: windowWidth * 0.04, 
   },
   mapButton: {
     width: "40%",
@@ -378,9 +402,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   prescriptionImage: {
-    // flex:,
     width: "80%",
-    height: 200, // Set the height as needed
+    height: 200, 
     borderRadius: 10,
     marginBottom: 16,
     aspectRatio: 1,
