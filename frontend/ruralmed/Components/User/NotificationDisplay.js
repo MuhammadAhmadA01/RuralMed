@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Text, Title } from "react-native-paper";
-import IP_ADDRESS from "../config/config";
+import IP_ADDRESS from "../../config/config";
 
 const NotificationsDisplay = ({
   notifications,

@@ -3,8 +3,8 @@ import React, { useEffect, useState } from "react";
 import { StatusBar } from "react-native";
 import { Appbar, Menu, Badge } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import NotificationsDisplay from "./NotificationDisplay";
-import IP_ADDRESS from "../config/config";
+import NotificationsDisplay from "../User/NotificationDisplay";
+import IP_ADDRESS from "../../config/config";
 const AppHeader = ({ navigation }) => {
   const [menuVisible, setMenuVisible] = useState(false);
   const [notificationsModalVisible, setNotificationsModalVisible] =

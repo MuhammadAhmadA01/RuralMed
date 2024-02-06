@@ -2,8 +2,8 @@
 import React, { useEffect, useState } from "react";
 import { Appbar, Menu, Badge } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import IP_ADDRESS from "../config/config";
-import NotificationsDisplay from "./NotificationDisplay";
+import IP_ADDRESS from "../../config/config";
+import NotificationsDisplay from "../User/NotificationDisplay";
 
 // Create the AppHeaderRider component
 const AppHeaderRider = ({ navigation }) => {
