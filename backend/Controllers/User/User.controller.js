@@ -7,6 +7,65 @@ const Notifications = require("../../Models/Notifications/Notification");
 const bcrypt = require("bcrypt");
 const cloudinary = require("../../config/cloudinary");
 const Order = require("../../Models/Order/Order");
+const nodemailer = require('nodemailer');
+const randomstring = require('randomstring');
+
+// Nodemailer setup
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'ruralmed123@gmail.com',
+    pass: 'cayp saoz enau xhlq'
+  }
+});
+
+// Generate OTP
+function generateOTP() {
+  return randomstring.generate({
+    length: 6,
+    charset: 'numeric'
+  });
+}
+
+// Controller method to send OTP
+const sendOTP =  async (req, res) => {
+  
+  const { email } = req.body;
+  console.log(email)
+  const otp = generateOTP();
+  console.log(otp)
+  const mailOptions = {
+    from: 'ruralmed123@gmail.com',
+    to: email,
+    subject: 'Email Verification OTP',
+    text: `Your OTP for email verification is: ${otp}`
+  };
+
+  const info= await transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.log(error);
+      res.status(500).json({ message: 'Failed to send OTP' });
+    } else {
+      console.log('Email sent: ' + info.response);
+      res.status(200).json({ message: 'OTP sent successfully', otp,success:true});
+    }
+  });
+  
+};
+
+// Controller method to verify OTP
+const verifyOTP = (req, res) => {
+  const { otp, userEnteredOTP } = req.body;
+
+  if (otp === userEnteredOTP) {
+    res.status(200).json({ message: 'OTP verified successfully', success:true});
+  } else {
+    res.status(400).json({ message: 'Invalid OTP' });
+  }
+};
+
+
 const loginController = (req, res) => {
   const { contactNumber, password } = req.body;
 
@@ -386,4 +445,6 @@ module.exports = {
   updateNotificationStatus,
   getOrderById,
   getProductById,
+  sendOTP,
+  verifyOTP
 };
