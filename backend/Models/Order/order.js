@@ -56,6 +56,12 @@ const Orders = sequelize.define("orders", {
     allowNull: false,
     defaultValue: [], // Default value as an empty array
   },
+  
+  hasReviewed: {
+    type: DataTypes.BOOLEAN, 
+    allowNull: true,
+    defaultValue: false, 
+  },
 });
 
 sequelize
