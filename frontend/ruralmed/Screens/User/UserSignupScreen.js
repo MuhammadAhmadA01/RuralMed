@@ -11,11 +11,13 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { styles } from "../styles/styles";
-import MapComponent from "../MapView/MapInputComponent";
-import { Appbar } from "react-native-paper";
+import OTPModal from "../../Components/User/OtpModal";
 
 // Functional component 'Signup'
 const Signup = ({ navigation }) => {
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otp, setOtp] = useState("");
+
   // State variables to manage form data
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -26,9 +28,9 @@ const Signup = ({ navigation }) => {
   const [role, setRole] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
-  const [currentLocation, setCurrentLocation] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [formData, setFormData] = useState(null);
+  const [emailVerified, setEmailVerified] = useState(false); // New state to track email verification
 
   // Error state variables for each input field
   const [firstNameError, setFirstNameError] = useState(null);
@@ -43,7 +45,14 @@ const Signup = ({ navigation }) => {
   const handleLocationSelection = (coordinates) => {
     setSelectedLocation(coordinates);
   };
+  const openOTPModal = () => {
+    setShowOtpModal(true);
+  };
 
+  // Function to close the OTP modal
+  const closeOTPModal = () => {
+    setShowOtpModal(false);
+  };
   // Function to open image library
   const openImageLibrary = () => {
     ImagePicker.requestMediaLibraryPermissionsAsync()
@@ -84,12 +93,78 @@ const Signup = ({ navigation }) => {
   const navigateToLogin = () => {
     navigation.replace("login");
   };
-  const navigateToMapScreen = () => {
-    navigation.navigate("MapInput", {
-      onSelectLocation: handleLocationSelection,
-    });
+  const handleSendOTP = () => {
+    fetch(`http://${IP_ADDRESS}:5000/verify`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    })
+      .then((response) => response.json())
+      .then((responseData) => {
+        console.log(responseData)
+        if (responseData.success) {
+          // OTP sent successfully, show OTP input field
+          setShowOtpModal(true);
+          setOtp(responseData.otp)
+          Alert.alert("Success", `OTP sent at ${email}`);
+        } else {
+          // Handle error
+          Alert.alert("Error", responseData.message);
+        }
+      })
+      .catch((error) => {
+        console.error("Error sending OTP:", error.message);
+        Alert.alert(
+          "Error",
+          "An error occurred while sending OTP. Please try again."
+        );
+      });
   };
+
+  // Function to handle OTP verification
+  const handleVerifyOTP = (otp,genOtp) => {
+    // Send the entered OTP to the server for verification
+    fetch(`http://${IP_ADDRESS}:5000/verify-otp`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ otp:otp
+        
+        , userEnteredOTP:genOtp }),
+    })
+      .then((response) => response.json())
+      .then((responseData) => {
+        console.log(responseData)
+        if (responseData.success) {
+          // OTP verified successfully, proceed with signup
+          closeOTPModal();
+          setEmailVerified(!emailVerified)
+          Alert.alert("Success", "Email verified successfully");
+
+          // You can proceed with the rest of your signup logic here
+        } else {
+          // Handle OTP verification failure
+          Alert.alert("Error", "Invalid OTP. Please try again.");
+        }
+      })
+      .catch((error) => {
+        console.error("Error verifying OTP:", error.message);
+        Alert.alert(
+          "Error",
+          "An error occurred while verifying OTP. Please try again."
+        );
+      });
+  };
+
   const handleSignup = () => {
+    if(!emailVerified)
+    {
+      Alert.alert("Verify your email first");
+      return;
+    }
     // Clear previous error messages
     setFirstNameError(null);
     setLastNameError(null);
@@ -167,7 +242,7 @@ const Signup = ({ navigation }) => {
       .then((responseData) => {
         if (responseData.success) {
           // If validation is successful, proceed with signup
-         
+
           // Proceed with the rest of your signup logic
           navigation.navigate(`${role}`, {
             userData,
@@ -225,16 +300,39 @@ const Signup = ({ navigation }) => {
             setLastNameError(!lastName ? "Last name is required" : null)
           }
         />
-        {emailError && <Text style={styles.error}>{emailError}</Text>}
+{/* Email */}
+{emailError && <Text style={styles.error}>{emailError}</Text>}
+        <View style={{ position: "relative" }}>
+          <TextInput
+            style={[styles.input, emailError && styles.inputError]}
+            placeholder="Email (include @)"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            onBlur={() => setEmailError(!email ? "Email is required" : null)}
+            editable={!emailVerified}
+          />
+          {/* Conditionally render the verify email button */}
+          {email && !emailError  && (
+            <TouchableOpacity
+              style={{
+                position: "absolute",
+                top: 0,
+                right: 10,
+                height: "100%",
+                justifyContent: "center",
+                bottom: 5,
+              }}
+              disabled={emailVerified}
+              onPress={handleSendOTP}
+            >
+              <Text style={{ color: emailVerified ? "gray" : "#25d366", marginBottom: 9 }}>
+                {emailVerified ? "Verified" : "Verify Email"}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
 
-        <TextInput
-          style={[styles.input, emailError && styles.inputError]}
-          placeholder="Email (include @)"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          onBlur={() => setEmailError(!email ? "Email is required" : null)}
-        />
         {passwordError && <Text style={styles.error}>{passwordError}</Text>}
 
         <TextInput
@@ -274,23 +372,32 @@ const Signup = ({ navigation }) => {
             setCityNearByError(!cityNearBy ? "City nearby is required" : null)
           }
         />
-<TouchableOpacity
- 
->
-  <Text style={{  fontSize:16 }}>
-    Select location on map:{' '}
-    <Text  onPress={() => {
-    navigation.navigate("MapInput", {
-      onSelectLocation: handleLocationSelection,
-    });
-    console.log(selectedLocation);
-  }} style={[styles.signupLink,{ fontSize: 20, marginLeft:'10px', textDecorationLine:"underline", color:"#25d366" }]}>
-      Click here
-    </Text>
-  </Text>
-</TouchableOpacity >
+        <TouchableOpacity>
+          <Text style={{ fontSize: 16 }}>
+            Select location on map:{" "}
+            <Text
+              onPress={() => {
+                navigation.navigate("MapInput", {
+                  onSelectLocation: handleLocationSelection,
+                });
+                console.log(selectedLocation);
+              }}
+              style={[
+                styles.signupLink,
+                {
+                  fontSize: 20,
+                  marginLeft: "10px",
+                  textDecorationLine: "underline",
+                  color: "#25d366",
+                },
+              ]}
+            >
+              Click here
+            </Text>
+          </Text>
+        </TouchableOpacity>
 
-        <View style={[styles.uploadContainer,{marginTop:'2%'}]}>
+        <View style={[styles.uploadContainer, { marginTop: "2%" }]}>
           <TouchableOpacity
             onPress={openImageLibrary}
             style={styles.uploadBtnContainer}
@@ -359,6 +466,8 @@ const Signup = ({ navigation }) => {
         <TouchableOpacity onPress={navigateToLogin}>
           <Text style={styles.signupLink}>Login</Text>
         </TouchableOpacity>
+        <OTPModal visible={showOtpModal} onSubmit={handleVerifyOTP} onClose={closeOTPModal} generatedOtp={otp}/>
+
       </View>
     </ScrollView>
   );
