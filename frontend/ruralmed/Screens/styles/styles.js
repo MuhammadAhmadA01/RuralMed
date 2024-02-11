@@ -67,10 +67,6 @@ export const styles = StyleSheet.create({
     borderColor: "red",
   },
 
-  error: {
-    color: "red",
-    marginTop: 5,
-  },
   signupButton: {
     backgroundColor: "#25d366",
     borderRadius: 10,
@@ -137,8 +133,10 @@ export const styles = StyleSheet.create({
   },
   error: {
     color: "red",
-    textAlign: "center",
-    marginBottom: "5%", // Use percentage for margin
+    textAlign: "left",
+    marginBottom: "1%",
+    fontSize:10
+    // Use percentage for margin
   },
   mapContainer: {
     marginTop: "3%", // Use percentage for margin
@@ -152,11 +150,15 @@ export const styles = StyleSheet.create({
 
     marginLeft: "3.5%", // Use percentage for margin
   },
-  map: {
-    height: windowWidth * 0.4, // Use a percentage of the window width
-    width: "100%", // Use 100% width to make it responsive
-    borderRadius: 8,
-    backgroundColor: "lightgray",
+
+  fab: {
+    position: "absolute",
+    bottom: 16,
+    right: 16,
+    backgroundColor: "#25d366",
+    borderRadius: 50,
+    padding: 16,
+    elevation: 5,
   },
   currentLocationButton: {
     backgroundColor: "#25d366",
