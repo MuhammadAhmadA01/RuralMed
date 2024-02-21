@@ -1,64 +1,54 @@
-import NotificationsDisplay from "./NotificationsDisplay";
+import Chips from "./Components/Chips";
+import useFetchEmail from "../../../utils/useFetchEmail";
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Ionicons } from "@expo/vector-icons";
 import { useSelector } from "react-redux";
-import { selectCartCount } from "../../Components/Cart/CartSelector";
+import { selectCartCount } from "../../../Components/Cart/CartSelector";
 import {
   View,
   ScrollView,
   StatusBar,
   Dimensions,
   BackHandler,
-  TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import {
-  Badge,
-  Appbar,
-  Menu,
-  Searchbar,
-  Snackbar,
-  FAB,
-  Card,
-  Title,
-  Paragraph,
-  Chip,
-  Text,
-} from "react-native-paper";
-import MapInputComponent from "../../Screens/MapView/MapInputComponent";
+import { Badge, Appbar, Searchbar, FAB, Title, Text } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import IP_ADDRESS from "../../config/config";
+
 import { useDispatch } from "react-redux";
+import IP_ADDRESS from "../../../config/config";
 import {
   addToCart,
-  clearCart,
   removeFromCart,
-} from "../../Components/Cart/CartSlice";
-
+  clearCart,
+} from "../../../Components/Cart/CartSlice";
+import NotificationsDisplay from "../../../Components/Customer/NotificationsDisplay";
+import Menubar from "./Components/Menubar";
+import CardView from "./Components/CardView";
 const CustomerHomeScreen = ({ navigation }) => {
-  const [cartCountInState, setCartCountInState] = useState(0);
+  const email = useFetchEmail();
   const dispatch = useDispatch();
-  const [menuVisible, setMenuVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isMapViewVisible, setMapViewVisible] = useState(false);
   const [selectedStoreType, setSelectedStoreType] = useState("All");
-  const [selectedLocation, setSelectedLocation] = useState(null);
-  const [snackbarVisible, setSnackbarVisible] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
   const [locationNames, setLocationNames] = useState({}); // New state to store location names
   const [isLoading, setIsLoading] = useState(true);
   const [storesFound, setStoresFound] = useState(true);
   const isFirstRender = useRef(true);
   const [notifications, setNotifications] = useState([]);
-
   const cartCount = useSelector(selectCartCount);
-
   const [isDataLoading, setIsDataLoading] = useState(false); // New state to track data loading
   const [contactNumberCustomer, setContactNumber] = useState("");
   const [originalStores, setOriginalStores] = useState([]);
   const [filteredStores, setFilteredStores] = useState([]);
   const [emailUser, setEmailUser] = useState("");
   const windowHeight = Dimensions.get("window").height;
+  const [notificationCount, setNotificationCount] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  useEffect(() => {
+   
+  }, [email]); // Add email to the dependency array to trigger the effect when email changes
+
   useEffect(() => {
     const fetchLocationNames = async () => {
       try {
@@ -85,7 +75,7 @@ const CustomerHomeScreen = ({ navigation }) => {
 
         setLocationNames(locationNameResults);
         setIsLoading(false);
-        setStoresFound(false);
+        setStoresFound(true);
       } catch (error) {
         console.log("Error fetching location names:", error);
         setIsLoading(false);
@@ -93,54 +83,38 @@ const CustomerHomeScreen = ({ navigation }) => {
         setStoresFound(false);
       }
     };
-
     fetchLocationNames();
-
-    // ... (rest of your code)
   }, [originalStores]);
   useEffect(() => {
     const getContactEmail = async () => {
       try {
         const contactNumber = await AsyncStorage.getItem("phone");
-        fetch(`http://${IP_ADDRESS}:5000/get-email`, {
-          method: "POST",
+        setContactNumber(contactNumber);
+        setEmailUser(email);
+
+        // Use the email data as needed
+        fetch(`http://${IP_ADDRESS}:5000/get-stores/${email}`, {
+          method: "GET",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ contactNumber }),
         })
           .then((response) => response.json())
-          .then((data) => {
-            setContactNumber(contactNumber);
-            setEmailUser(data.email);
-            // Use the email data as needed
-            fetch(`http://${IP_ADDRESS}:5000/get-stores/${data.email}`, {
-              method: "GET",
-              headers: {
-                "Content-Type": "application/json",
-              },
-            })
-              .then((response) => response.json())
-              .then((stores) => {
-                // Update the state with the fetched stores
-                if (stores.success) {
-                  const ridersData = stores.riders.join(",");
-                  AsyncStorage.setItem("riders", ridersData);
-                  const storeList = Array.isArray(stores)
-                    ? stores
-                    : Object.values(stores);
-                  setOriginalStores(storeList[0]);
-                  setFilteredStores(storeList[0]);
-                } else {
-                  setStoresFound(true);
-                }
-              })
-              .catch((error) => {
-                console.log("Error fetching stores:", error);
-              });
+          .then((stores) => {
+            // Update the state with the fetched stores
+            if (stores.success) {
+              const ridersData = stores.riders.join(",");
+              AsyncStorage.setItem("riders", ridersData);
+              const storeList = Array.isArray(stores)
+                ? stores
+                : Object.values(stores);
+              setOriginalStores(storeList[0]);
+              setFilteredStores(storeList[0]);
+              setStoresFound(true);
+            }
           })
           .catch((error) => {
-            console.log("Error fetching email:", error);
+            console.log("Error fetching stores:", error);
           });
       } catch (error) {
         console.log("Error fetching contact number:", error);
@@ -148,31 +122,13 @@ const CustomerHomeScreen = ({ navigation }) => {
     };
 
     getContactEmail();
-  }, []);
-  const [notificationCount, setNotificationCount] = useState(0);
-  const [showNotifications, setShowNotifications] = useState(false);
-
+  }, [email]);
   useEffect(() => {
     // Fetch notifications and count unread notifications
     const fetchNotifications = async () => {
       try {
-        // Fetch email data
-        const contactNumber = await AsyncStorage.getItem("phone");
-        const emailResponse = await fetch(
-          `http://${IP_ADDRESS}:5000/get-email`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ contactNumber }),
-          }
-        );
-        const emailData = await emailResponse.json();
-
-        // Fetch notifications for the customer
         const notificationsResponse = await fetch(
-          `http://${IP_ADDRESS}:5000/notifications/${emailData.email}/Customer`
+          `http://${IP_ADDRESS}:5000/notifications/${email}/Customer`
         );
         const notificationsData = await notificationsResponse.json();
 
@@ -190,8 +146,7 @@ const CustomerHomeScreen = ({ navigation }) => {
 
     // Fetch notifications on component mount
     fetchNotifications();
-  }, [notificationCount]); // Run only on component mount
-
+  }, [notificationCount, email]); // Run only on component mount
   useEffect(() => {
     // Fetch cart details and update Redux store
     const fetchCartDetails = async () => {
@@ -201,7 +156,9 @@ const CustomerHomeScreen = ({ navigation }) => {
         );
         const data = await response.json();
         if (data.success) {
+          console.log(data.cartDetails)
           data.cartDetails.forEach((product) => {
+           // console.log(product)
             dispatch(addToCart(product));
           });
         }
@@ -216,7 +173,6 @@ const CustomerHomeScreen = ({ navigation }) => {
       isFirstRender.current = false;
     }
   }, [contactNumberCustomer, isFirstRender]);
-
   useEffect(() => {
     // Add a back button listener to handle back key press
     const backHandler = BackHandler.addEventListener(
@@ -227,7 +183,6 @@ const CustomerHomeScreen = ({ navigation }) => {
     // Clean up the back button listener when the component unmounts
     return () => backHandler.remove();
   }, [handleBackPress]);
-
   const handleBackPress = useCallback(() => {
     // If the search query is not empty, handle backspace to update the filtered list
     if (searchQuery.length > 0) {
@@ -245,9 +200,6 @@ const CustomerHomeScreen = ({ navigation }) => {
     return false; // Allow default back action
   }, [searchQuery, originalStores]);
 
-  const openMenu = () => setMenuVisible(true);
-  const closeMenu = () => setMenuVisible(false);
-
   const handleStoreTypeChange = (type) => {
     setSelectedStoreType(type);
 
@@ -258,17 +210,7 @@ const CustomerHomeScreen = ({ navigation }) => {
     );
 
     setFilteredStores(filterStores);
-  };
-
-  const toggleMapView = () => {
-    setMapViewVisible(!isMapViewVisible);
-    // Show a snackbar with the appropriate message
-    setSnackbarVisible(true);
-    setSnackbarMessage(
-      isMapViewVisible
-        ? "Click this button again to show the map"
-        : "Click this button again to hide the map"
-    );
+    setStoresFound(false);
   };
   const handleSearch = (query) => {
     setSearchQuery(query);
@@ -279,15 +221,6 @@ const CustomerHomeScreen = ({ navigation }) => {
         (selectedStoreType === "All" || store.storeType === selectedStoreType)
     );
     setFilteredStores(filterStores);
-  };
-  const handleSnackbarDismiss = () => {
-    // Hide the snackbar when dismissed
-    setSnackbarVisible(false);
-  };
-
-  const handleLocationSelection = (coordinates) => {
-    setSelectedLocation(coordinates);
-    // setMapViewVisible(!isMapViewVisible)
   };
   const handleStoreCardPress = async (store) => {
     try {
@@ -314,7 +247,7 @@ const CustomerHomeScreen = ({ navigation }) => {
   };
   const handleNotificationsClick = async () => {
     try {
-      console.log(emailUser);
+
       // Update notifications as opened for the customer
       const updateNotificationsResponse = await fetch(
         `http://${IP_ADDRESS}:5000/update-notifications/${emailUser}/Customer`,
@@ -322,7 +255,6 @@ const CustomerHomeScreen = ({ navigation }) => {
           method: "PUT",
         }
       );
-      console.log(updateNotificationsResponse);
       if (updateNotificationsResponse.ok) {
         // Set notification count to 0
         const notificationsResponse = await fetch(
@@ -356,52 +288,7 @@ const CustomerHomeScreen = ({ navigation }) => {
 
       {/* Appbar/Header */}
       <Appbar.Header>
-        <Menu
-          visible={menuVisible}
-          onDismiss={closeMenu}
-          style={{ marginTop: "18%", width: "50%", height: "30%" }}
-          anchor={<Appbar.Action icon="menu" onPress={openMenu} />}
-        >
-          <Menu.Item
-            title="MENU"
-            style={{ alignItems: "center", marginLeft: "12%" }}
-            titleStyle={{ fontSize: 18, fontWeight: "bold" }}
-          />
-          <Menu.Item
-            style={{ alignItems: "center", paddingLeft: "5%" }}
-            onPress={() => console.log("Item 1")}
-            title="My Profile"
-          />
-          <Menu.Item
-            style={{ alignItems: "center", paddingLeft: "5%" }}
-            onPress={() => console.log("Item 2")}
-            title="My Orders"
-          />
-          <Menu.Item
-            style={{ alignItems: "center", paddingLeft: "5%" }}
-            onPress={() => console.log("Item 3")}
-            title="My Meetings"
-          />
-          <Menu.Item
-            style={{ alignItems: "center", paddingLeft: "3%" }}
-            onPress={() => console.log("Item 4")}
-            title="My Prescriptions"
-          />
-          <Menu.Item
-            style={{ alignItems: "center", paddingLeft: "17%" }}
-            onPress={async () => {
-              setMenuVisible(false);
-              await AsyncStorage.removeItem("token");
-              await AsyncStorage.removeItem("role");
-              await AsyncStorage.removeItem("phone");
-
-              dispatch(clearCart());
-              navigation.replace("login");
-            }}
-            title="Logout"
-          />
-        </Menu>
-
+        <Menubar navigation={navigation}></Menubar>
         {!isMapViewVisible ? (
           <Searchbar
             placeholder="Search stores..."
@@ -464,31 +351,25 @@ const CustomerHomeScreen = ({ navigation }) => {
           }
         />
       </Appbar.Header>
-
-      {/* FAB for Map View */}
       <FAB
-        icon="map-marker"
+        label="Get Help"
+        size="large"
+        color="white"
         style={{
           position: "absolute",
-          margin: 16,
+          margin: 6,
           right: 0,
+          paddingLeft:10,
+          paddingRight:10,
           bottom: isMapViewVisible ? windowHeight * 0 : 0,
           backgroundColor: "#25d366",
           zIndex: 1,
         }}
-        onPress={toggleMapView}
+        onPress={() => {
+          navigation.navigate("ChatScreen");
+        }}
       />
-
-      {/* Store Type Buttons */}
       <ScrollView>
-        <View width="98%" marginTop={isMapViewVisible ? "0%" : "0"}>
-          {isMapViewVisible && (
-            <MapInputComponent
-              onSelectLocation={handleLocationSelection}
-            ></MapInputComponent>
-          )}
-        </View>
-
         <Title
           style={{
             marginLeft: "3%",
@@ -499,35 +380,10 @@ const CustomerHomeScreen = ({ navigation }) => {
         >
           Categories
         </Title>
-
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-around",
-            marginVertical: "2%",
-          }}
-        >
-          {["All", "Pharmacy", "Veteran", "Agricultural"].map((type) => (
-            <Chip
-              key={type}
-              mode={selectedStoreType === type ? "outlined" : "flat"}
-              onPress={() => handleStoreTypeChange(type)}
-              style={{
-                backgroundColor:
-                  selectedStoreType === type ? "transparent" : "#25d366",
-                borderColor:
-                  selectedStoreType === type ? "#25d366" : "transparent",
-                borderWidth: 1,
-              }}
-              textStyle={{
-                color: selectedStoreType === type ? "#25d366" : "white",
-              }}
-            >
-              {type}
-            </Chip>
-          ))}
-        </View>
-
+        <Chips
+          handleStoreType={handleStoreTypeChange}
+          selectedStoreType={selectedStoreType}
+        ></Chips>
         <Title
           style={{ marginLeft: "3%", color: "#25d366", fontWeight: "700" }}
         >
@@ -539,90 +395,25 @@ const CustomerHomeScreen = ({ navigation }) => {
             <ActivityIndicator size="large" color="#25d366" margin={200} />
           ) : filteredStores.length > 0 ? (
             filteredStores.map((store, index) => (
-              <TouchableOpacity
+              <CardView
                 key={store.storeID}
-                onPress={() => {
-                  handleStoreCardPress(store);
-                }}
-              >
-                <Card
-                  key={store.storeID}
-                  style={{ margin: "2%", borderRadius: 10, overflow: "hidden" }}
-                >
-                  <Card.Cover
-                    source={{ uri: "https://via.placeholder.com/150" }}
-                  />
-                  <Card.Content>
-                    <Title>{store.storeName}</Title>
-                    <View
-                      style={{ flexDirection: "row", alignItems: "center" }}
-                    >
-                      <Ionicons
-                        name="location"
-                        size={20}
-                        color="#25d366"
-                        style={{ marginRight: 8 }}
-                      />
-                      <Paragraph>{locationNames[index]}</Paragraph>
-                    </View>
-                    <View
-                      style={{ flexDirection: "row", alignItems: "center" }}
-                    >
-                      <Ionicons
-                        name="call"
-                        size={20}
-                        color="#25d366"
-                        style={{ marginRight: 8 }}
-                      />
-                      <Paragraph>{store.storeContact}</Paragraph>
-                      <TouchableOpacity
-                        style={{
-                          backgroundColor: "#25d366",
-                          padding: 10,
-                          borderRadius: 5,
-                          marginTop: 10,
-                          marginLeft: "25%",
-                          alignItems: "flex-end",
-                        }}
-                        onPress={() => {
-                          console.log(emailUser);
-                          navigation.replace("UploadPrescriptionScreen", {
-                            email: emailUser,
-                            store,
-                            contactNumberCustomer,
-                          });
-                        }}
-                      >
-                        <Text style={{ color: "white" }}>
-                          Upload Prescription
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  </Card.Content>
-                </Card>
-              </TouchableOpacity>
+                emailUser={emailUser}
+                store={store}
+                navigation={navigation}
+                contactNumberCustomer={contactNumberCustomer}
+                locationNames={locationNames}
+                index={index}
+                handleStoreCardPress={handleStoreCardPress}
+              ></CardView>
             ))
           ) : (
             <Text style={{ margin: "35%", fontWeight: "700" }}>
-              {storesFound ? "No stores found" : "Loading stores..."}
+              {storesFound ? "Loading stores..." : "No stores found"}
             </Text>
           )}
         </ScrollView>
       </ScrollView>
-
-      {/* Snackbar */}
-      <Snackbar
-        visible={snackbarVisible}
-        onDismiss={handleSnackbarDismiss}
-        action={{
-          label: "OK",
-          onPress: handleSnackbarDismiss,
-        }}
-      >
-        {snackbarMessage}
-      </Snackbar>
     </View>
   );
 };
-
 export default CustomerHomeScreen;
