@@ -116,7 +116,7 @@ const AppHeader = ({ navigation }) => {
             style={{ alignItems: "center", paddingLeft: "5%" }}
             onPress={() => {
               setMenuVisible(false);
-              navigation.navigate("OwnerOrdersScreen");
+              navigation.navigate("AllOrdersScreen",{role:"owner"});
             }}
             title="My Orders"
           />
@@ -125,7 +125,7 @@ const AppHeader = ({ navigation }) => {
             onPress={() => {
               setMenuVisible(false);
 
-              navigation.navigate("OwnerAddProductScreen");
+              navigation.replace("OwnerAddProductScreen");
             }}
             title="Add Product "
           />

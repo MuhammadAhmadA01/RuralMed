@@ -7,16 +7,17 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from "react-native";
-import AppHeaderRider from "../../Components/RiderAppHeader";
+import AppHeaderRider from "../../Components/Rider/RiderAppHeader";
 import { Card, Title, Chip, Button } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import IP_ADDRESS from "../../config/config";
+import AppHeaderOwner from '../../Components/Owner/OwnerAppHeader'
 
-const RiderOrdersScreen = ({ navigation }) => {
+const AllOrdersScreen = ({ navigation,route}) => {
   const [orders, setOrders] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
-
+  const {role}=route.params
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -37,7 +38,7 @@ const RiderOrdersScreen = ({ navigation }) => {
 
         const email = data.email;
         const ordersResponse = await fetch(
-          `http://${IP_ADDRESS}:5000/get-rider-orders/${email}`
+          `http://${IP_ADDRESS}:5000/get-${role}-orders/${email}`
         );
 
         if (!ordersResponse.ok) {
@@ -91,6 +92,19 @@ const RiderOrdersScreen = ({ navigation }) => {
     };
   };
 
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "completed":
+        return "#25d366"; // Green color for completed
+      case "in-progress":
+        return "red"; // Red color for in-progress
+      case "picked":
+        return "green"; // Black color for picked
+      default:
+        return "black"; // Default to black for other statuses
+    }
+  }
+  
   const renderOrderCards = () => {
     const filteredOrders = filterOrdersByStatus();
 
@@ -104,7 +118,10 @@ const RiderOrdersScreen = ({ navigation }) => {
             <Title>Order # {order.orderID}</Title>
             <Text>Date: {parseOrderDate(order.dateOfOrder).date}</Text>
             <Text>Time: {parseOrderDate(order.dateOfOrder).formattedTime}</Text>
-            <Text>Status: {order.orderStatus}</Text>
+            <Text style={{ color: getStatusColor(order.orderStatus) }}>
+              Status: {order.orderStatus}
+            </Text>
+          
           </Card.Content>
         </Card>
       </TouchableOpacity>
@@ -120,7 +137,11 @@ const RiderOrdersScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <AppHeaderRider navigation={navigation}></AppHeaderRider>
+      
+    {role==="rider" &&<AppHeaderRider navigation={navigation}></AppHeaderRider>}
+    {role==="owner" &&<AppHeaderOwner navigation={navigation}></AppHeaderOwner>
+      }
+    
       <View style={{ paddingTop: 10, alignItems: "center" }}>
         <Title style={{ color: "black", fontSize: 24, fontWeight: "bold" }}>
           All Your Orders
@@ -154,6 +175,9 @@ const RiderOrdersScreen = ({ navigation }) => {
                   ? "#25d366"
                   : "transparent",
               borderWidth: 1,
+              borderRadius:50,
+              padding:3
+
             }}
             textStyle={{
               color:
@@ -175,7 +199,7 @@ const RiderOrdersScreen = ({ navigation }) => {
 
       <Button
         mode="contained"
-        onPress={() => navigation.replace("HomeRider")}
+        onPress={() => navigation.replace(`Home${role==="rider"?"Rider":"Owner"}`)}
         style={styles.bottomButton}
       >
         Go to Home
@@ -204,9 +228,14 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   bottomButton: {
-    marginVertical: 16,
+    padding: 1,
+    borderRadius: 50,
+    alignItems: "center",
+    justifyContent: "center",
+    margin: 16,
     backgroundColor: "#25d366",
+  
   },
 });
 
-export default RiderOrdersScreen;
+export default AllOrdersScreen;

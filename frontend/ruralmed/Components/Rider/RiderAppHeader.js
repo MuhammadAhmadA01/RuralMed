@@ -112,11 +112,7 @@ const AppHeaderRider = ({ navigation }) => {
           />
           <Menu.Item
             style={{ alignItems: "center", paddingLeft: "5%" }}
-            onPress={() => {
-              navigation.navigate("RiderOrdersScreen", {
-                notificationCount,
-                setNotificationCount,
-              });
+            onPress={() => {              navigation.navigate("AllOrdersScreen",{role:"rider"});
               setMenuVisible(false);
             }}
             title="My Orders"

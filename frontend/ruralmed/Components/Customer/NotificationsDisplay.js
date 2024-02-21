@@ -80,7 +80,7 @@ const NotificationsDisplay = ({ notifications, onClose }) => {
 
   return (
     <Modal
-      animationType="slide"
+      animationType="fade"
       transparent={true}
       visible={true}
       onRequestClose={onClose}
@@ -103,9 +103,10 @@ const NotificationsDisplay = ({ notifications, onClose }) => {
 
               <FlatList
                 data={groupedNotifications}
-                keyExtractor={(item) => item.date}
+                keyExtractor={(item) => item.notifications}
                 renderItem={({ item }) => (
                   <NotificationGroup
+                  key={item.notifications.map((el)=>el.notificationID)}
                     date={item.date}
                     notifications={item.notifications}
                     onPress={() =>{}}
