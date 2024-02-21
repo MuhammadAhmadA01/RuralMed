@@ -9,21 +9,17 @@ import {
   ActivityIndicator,
   Switch,
 } from "react-native";
-import { Title } from "react-native-paper";
+import styles from "./styles/styles";
+import { Title, Appbar } from "react-native-paper";
 import * as ImagePicker from "expo-image-picker";
-import IP_ADDRESS from "../../config/config";
-import { StyleSheet, Dimensions } from "react-native";
+import IP_ADDRESS from "../../../config/config";
 
-const windowWidth = Dimensions.get("window").width;
-const windowHeight = Dimensions.get("window").height;
-
-const UploadPrescriptionScreen = ({ navigation, route }) => {
+const UploadPrescriptionScreen = ({ route, navigation }) => {
   const [durationError, setDurationError] = useState(null); // New state for duration error
   const [loading, setLoading] = useState(false); // State for controlling the loader
   const [switchOn, setSwitchOn] = useState(false); // Added switch state
 
   const { email, store, contactNumberCustomer } = route.params;
-  console.log(store);
   const [selectedImage, setSelectedImage] = useState(null);
   const [duration, setDuration] = useState("");
   useEffect(() => {
@@ -220,9 +216,15 @@ const UploadPrescriptionScreen = ({ navigation, route }) => {
   };
 
   return (
+    <>
+    <Appbar.Header style={{backgroundColor:'#25d366'}}>
+        <Appbar.BackAction onPress={() => navigation.goBack()} />
+        <Appbar.Content title="Upload Prescription" />
+      </Appbar.Header>
+
     <View style={styles.container}>
       {/* Image Instructions Section */}
-
+      
       <Title style={styles.title}>Upload your Prescription</Title>
       <View style={styles.instructionsContainer}>
         <Title style={styles.instructionsTitle}>Instructions</Title>
@@ -290,93 +292,9 @@ const UploadPrescriptionScreen = ({ navigation, route }) => {
         </View>
       )}
     </View>
+    </>
   );
 };
 
-const styles = StyleSheet.create({
-  errorText: {
-    color: "red",
-    textAlign: "left",
-    fontSize: 12,
-    marginTop: 5,
-  },
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#f2f2f2",
-  },
-  imageContainer: {
-    marginBottom: 20,
-  },
-  image: {
-    width: 200,
-    height: 200,
-    borderRadius: 10,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 10,
-    marginBottom: 20,
-    width: 200,
-    borderRadius: 5,
-    backgroundColor: "white",
-  },
-  title: {
-    fontSize: 24, // Adjust the font size as needed
-    fontWeight: "bold", // Use 'bold' for a bolder weight
-    marginBottom: 20, // Adjust the margin as needed
-  },
-  button: {
-    backgroundColor: "#25d366",
-    padding: 10,
-    borderRadius: 5,
-    width: 200,
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "white",
-  },
-  signupButton: {
-    backgroundColor: "#25d366",
-    borderRadius: 10,
-    paddingVertical: "2%", // Use percentage for padding
-    paddingHorizontal: "25%", // Use percentage for padding
-
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: "2%",
-  },
-  signupButtonText: {
-    color: "#fff",
-    fontSize: windowWidth * 0.04, // Use a percentage of the window width
-  },
-  switchContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-    width: 200,
-  },
-  identityText: {
-    color: "#333", // Adjust the color as needed
-    marginBottom: 20,
-  },
-  instructionsContainer: {
-    marginTop: 0,
-    paddingHorizontal: 20,
-  },
-  instructionsTitle: {
-    color: "#25d366",
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  instructionsText: {
-    fontSize: 16,
-    color: "#333",
-  },
-});
 
 export default UploadPrescriptionScreen;

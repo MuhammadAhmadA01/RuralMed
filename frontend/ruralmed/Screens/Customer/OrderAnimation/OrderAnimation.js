@@ -13,7 +13,7 @@ const LoadingScreen = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       <Image
-        source={require("../../assets/delivery.gif")}
+        source={require("../../../assets/delivery.gif")}
         style={styles.animation}
       />
     </View>

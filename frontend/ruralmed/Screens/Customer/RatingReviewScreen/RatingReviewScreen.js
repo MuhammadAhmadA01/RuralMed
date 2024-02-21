@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { Appbar, Title, Paragraph, TextInput, Button } from "react-native-paper";
 import { Alert } from "react-native";
-import OrderCompletedComponent from "../../Components/Customer/OrderCompletedComponent";
-import RatingComponent from "../../Components/Customer/RatingComponent";
-import IP_ADDRESS from "../../config/config";
+import OrderCompletedComponent from "./Components/OrderCompletedComponent";
+import RatingComponent from "./Components/RatingComponent";
+import IP_ADDRESS from "../../../config/config";
+import styles from "./styles/styles";
 const RateAndReviewScreen = ({ navigation, route }) => {
   const {order}=route.params
   const [riderRating, setRiderRating] = useState(0);
@@ -20,15 +21,13 @@ const RateAndReviewScreen = ({ navigation, route }) => {
   };
 
   const submitRating = () => {
-    // Construct the request body
     const requestBody = {
-      order_id: order.orderID, // Assuming order has an 'id' property
+      order_id: order.orderID, 
       rating_for_rider: riderRating,
       rating_for_Owner: ownerRating,
       review: reviewText,
     };
   
-    // Make the POST request
     fetch(`http://${IP_ADDRESS}:5000/addRating`, {
       method: 'POST',
       headers: {
@@ -38,14 +37,12 @@ const RateAndReviewScreen = ({ navigation, route }) => {
     })
       .then((response) => response.json())
       .then((data) => {
-        // Handle the response data (if needed)
         
         Alert.alert("Thank you for your feedback", "We appreciate your effort to provide us with your worthy insights");
+        navigation.replace('HomeCustomer');
       })
       .catch((error) => {
-        // Handle errors
         console.error('Error submitting rating', error);
-        // You might want to display an error message to the user
       });
   };
 
@@ -97,29 +94,3 @@ const RateAndReviewScreen = ({ navigation, route }) => {
 };
 
 export default RateAndReviewScreen;
-const styles = StyleSheet.create({
-  reviewSection: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 20,
-  },
-  reviewTitle: {
-    fontSize: 18,
-    color: "#25d366", // Primary color
-    marginBottom: 10,
-  },
-  reviewDescription: {
-    marginBottom: 10,
-  },
-  textArea: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 20,
-    backgroundColor: "white",
-  },
-  submitButton: {
-    backgroundColor: "#25d366", // Primary color
-  },
-});
