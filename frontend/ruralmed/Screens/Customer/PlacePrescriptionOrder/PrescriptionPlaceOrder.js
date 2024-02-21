@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
+import styles from "./styles/styles";
 import {
   View,
   Text,
-  StyleSheet,
   ActivityIndicator,
   Image,
   Linking,
@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { Appbar, Button, Title } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import IP_ADDRESS from "../../config/config";
+import IP_ADDRESS from "../../../config/config";
 import { useSelector, useDispatch } from "react-redux";
 import moment from "moment";
 const PrescriptionPlaceOrderScreen = ({ navigation, route }) => {
@@ -179,7 +179,7 @@ const PrescriptionPlaceOrderScreen = ({ navigation, route }) => {
   return (
     <View style={{ flex: 1 }}>
       {/* Appbar/Header */}
-      <Appbar.Header>
+      <Appbar.Header style={{backgroundColor:'#25d366'}}>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title="Order Details" />
       </Appbar.Header>
@@ -258,49 +258,4 @@ const PrescriptionPlaceOrderScreen = ({ navigation, route }) => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  // Style definitions for the CheckoutScreen
-  // Style definitions for the CheckoutScreen
-  orderDetailsTitle: {
-    marginLeft: "3%",
-    color: "#25d366",
-    fontWeight: "700",
-    marginTop: "2%",
-  },
-  prescriptionImageContainer: {
-    alignItems: "center",
-    marginTop: 10,
-  },
-  prescriptionImage: {
-    width: 200, // Adjust the width as needed
-    height: 200, // Adjust the height as needed
-    resizeMode: "contain",
-  },
-  subtotalContainer: {
-    margin: 10,
-  },
-  subtotalText: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  checkoutButton: {
-    margin: 16,
-    backgroundColor: "#25d366",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-  },
-  dialerButton: {
-    marginTop: 10,
-    backgroundColor: "#25d366",
-  },
-});
-
 export default PrescriptionPlaceOrderScreen;

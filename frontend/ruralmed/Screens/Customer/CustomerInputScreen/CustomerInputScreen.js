@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
-import { styles } from "../styles/styles";
-import IP_ADDRESS from "../../config/config";
+import { styles } from "../../styles/styles";
+import IP_ADDRESS from "../../../config/config";
 const CustomerScreen = ({ route, navigation }) => {
   const { email } = route.params.userData;
   const formData = route.params.image;
