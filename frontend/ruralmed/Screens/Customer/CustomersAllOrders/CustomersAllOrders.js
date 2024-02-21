@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import styles from "./styles/styles";
 import {
   View,
   ScrollView,
@@ -9,33 +10,20 @@ import {
 } from "react-native";
 import { Card, Title, Chip, Button } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import IP_ADDRESS from "../../config/config";
-import AppHeaderCustomer from "../../Components/Customer/AppHeaderCustomer";
+import IP_ADDRESS from "../../../config/config";
+import useFetchEmail from "../../../utils/useFetchEmail";
+import AppHeaderCustomer from "../../../Components/Customer/AppHeaderCustomer";
 
 const CustomerAllOrders = ({ navigation }) => {
   const [orders, setOrders] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
-  
+  const email=useFetchEmail();
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const contactNumber = await AsyncStorage.getItem("phone");
-        const response = await fetch(`http://${IP_ADDRESS}:5000/get-email`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ contactNumber }),
-        });
-
-        if (!response.ok) {
-          throw new Error("Error fetching email");
-        }
-
-        const data = await response.json();
-
-        const id = data.email;
+   
+        const id = email;
         const ordersResponse = await fetch(
           `http://${IP_ADDRESS}:5000/get-customers-orders/${id}`
         );
@@ -59,49 +47,51 @@ const CustomerAllOrders = ({ navigation }) => {
     };
 
     fetchData();
-  }, []);
+  }, [email]);
 
   const handleStatusChange = (status) => {
     setSelectedStatus(status.toLowerCase());
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "completed":
-        return "#25d366"; // Green color for completed
-      case "in-progress":
-        return "red"; // Red color for in-progress
-      case "picked":
-        return "green"; // Black color for picked
-      default:
-        return "black"; // Default to black for other statuses
-    }
-  }
   const handleCardPress = (orderID) => {
     console.log("Clicked on order:", orderID);
   };
-  const parseOrderDate = (dateString) => {
-    const orderDate = new Date(dateString);
+  
+const parseOrderDate = (dateString) => {
+  const orderDate = new Date(dateString);
 
-    // Format the date (e.g., "2023-12-14")
-    const date = orderDate.toISOString().split("T")[0];
+  // Format the date (e.g., "2023-12-14")
+  const date = orderDate.toISOString().split("T")[0];
 
-    // Format the time (e.g., "14:16:44")
-    const time = orderDate.toISOString().split("T")[1].split(".")[0];
+  // Format the time (e.g., "14:16:44")
+  const time = orderDate.toISOString().split("T")[1].split(".")[0];
 
-    // Format the time in 12-hour format with AM/PM (e.g., "02:16 PM")
-    const formattedTime = orderDate.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    });
+  // Format the time in 12-hour format with AM/PM (e.g., "02:16 PM")
+  const formattedTime = orderDate.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
 
-    return {
-      date,
-      time,
-      formattedTime,
-    };
+  return {
+    date,
+    time,
+    formattedTime,
   };
+};
+const getStatusColor = (status) => {
+  switch (status) {
+    case "completed":
+      return "#25d366"; // Green color for completed
+    case "in-progress":
+      return "red"; // Red color for in-progress
+    case "picked":
+      return "green"; // Black color for picked
+    default:
+      return "black"; // Default to black for other statuses
+  }
+}
+
   const renderOrderCards = () => {
     const filteredOrders = filterOrdersByStatus();
   
@@ -187,6 +177,8 @@ const CustomerAllOrders = ({ navigation }) => {
                   ? "#25d366"
                   : "transparent",
               borderWidth: 1,
+              borderRadius:50,
+              padding:3
             }}
             textStyle={{
               color:
@@ -199,7 +191,7 @@ const CustomerAllOrders = ({ navigation }) => {
       </View>
 
       <ScrollView style={styles.scrollView}>
-        {isLoading ? (
+        {isLoading || !email ? (
           <ActivityIndicator size="large" color="#25d366" margin={200} />
         ) : (
           renderOrderCards()
@@ -216,48 +208,4 @@ const CustomerAllOrders = ({ navigation }) => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  chipContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginVertical: 16,
-  },
-  chip: {
-    backgroundColor: "#25d366",
-  },
-  scrollView: {
-    flex: 1,
-  },
-  card: {
-    height:118,
-    marginVertical: 8,
-    borderRadius: 10,
-  },
-  reviewSubmittedText: {
-    color: "#888", // or any other gray color
-    fontSize: 18,
-    textAlign: "right",
-    marginRight: 5,
-  },
-  
-  bottomButton: {
-    marginVertical: 16,
-    backgroundColor: "#25d366",
-  },
-  reviewButton: {
-    position: "absolute",
-    bottom: 10,
-    right: 10,
-    backgroundColor: "#25d366",
-    padding: 10,
-    borderRadius: 5,
-    alignItems: "center",
-  },
-  
-});
-
 export default CustomerAllOrders;
