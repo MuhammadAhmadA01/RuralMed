@@ -1,5 +1,5 @@
-import IP_ADDRESS from "../../config/config";
-import { Ionicons } from "@expo/vector-icons";
+import IP_ADDRESS from "../../../config/config";
+import styles from "./styles/styles";
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -8,12 +8,11 @@ import {
   Image,
   Text,
   TouchableOpacity,
-  StyleSheet,
   Alert,
 } from "react-native";
 import { Appbar, Badge } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
-import { addToCart, removeFromCart } from "../../Components/Cart/CartSlice";
+import { addToCart, removeFromCart } from "../../../Components/Cart/CartSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Define the StoreDetailsScreen component
@@ -74,7 +73,7 @@ const StoreDetailsScreen = ({ route, navigation }) => {
           );
         }
       } else {
-        Alert.alert("Cannot add products in cart from different stores");
+        Alert.alert("Choose from Same Store","Cannot add products in cart from different stores");
         return;
       }
     } else {
@@ -171,8 +170,8 @@ const StoreDetailsScreen = ({ route, navigation }) => {
                     {cartItems.filter(
                       (item) => item.productID === product.productID
                     ).length > 0
-                      ? "-"
-                      : "+"}
+                      ? "Remove"
+                      : "Add"}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -200,75 +199,4 @@ const StoreDetailsScreen = ({ route, navigation }) => {
   );
 };
 
-// Styles for the component
-const styles = StyleSheet.create({
-  // Style definitions for the StoreDetailsScreen
-  productContainer: {
-    flexDirection: "row",
-    margin: 10,
-    padding: 10,
-    borderRadius: 10,
-    backgroundColor: "#fff",
-    elevation: 3,
-  },
-  productDetails: {
-    marginLeft: 10,
-    flex: 1,
-  },
-  productName: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  productDescription: {
-    fontSize: 14,
-    color: "gray",
-  },
-  productPrice: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginTop: 5,
-  },
-  addToCartButton: {
-    backgroundColor: "#25d366",
-    padding: 14,
-    borderRadius: 5,
-    position: "absolute",
-    bottom: 5,
-    right: 5,
-  },
-  addToCartText: {
-    color: "black",
-    fontWeight: "bold",
-    fontSize: 18,
-  },
-  viewCartButton: {
-    width: "90%",
-    padding: 5,
-    borderRadius: 5,
-    alignItems: "center",
-    justifyContent: "center",
-    margin: 16,
-    backgroundColor: "#25d366",
-  },
-  viewCartButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 18,
-  },
-  cartBadge: {
-    backgroundColor: "red",
-    borderRadius: 10,
-    padding: 5,
-    position: "absolute",
-    top: 5,
-    right: 5,
-  },
-  cartBadgeText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 12,
-  },
-});
-
-// Export the component
 export default StoreDetailsScreen;
