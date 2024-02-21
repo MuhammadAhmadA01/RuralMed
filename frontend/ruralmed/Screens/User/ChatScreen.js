@@ -4,6 +4,7 @@ import { TouchableOpacity, View, Text, StyleSheet } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import useFetchEmail from "../../utils/useFetchEmail";
 import IP_ADDRESS from "../../config/config";
+import { Appbar } from "react-native-paper";
 
 const ChatScreen = ({ navigation }) => {
   const [messages, setMessages] = useState([]);
@@ -266,6 +267,11 @@ const ChatScreen = ({ navigation }) => {
   };
 
   return (
+    <View style={{flex:1}}>
+      <Appbar.Header style={{ backgroundColor: "#25d366" }}>
+        <Appbar.BackAction onPress={() => navigation.goBack()} />
+        <Appbar.Content title="Support" />
+      </Appbar.Header>
     <GiftedChat
       messages={messages}
       onSend={(newMessages) => onSend(newMessages)}
@@ -294,6 +300,7 @@ const ChatScreen = ({ navigation }) => {
       )}
       renderSystemMessage={renderSystemMessage}
     />
+    </View>
   );
 };
 
