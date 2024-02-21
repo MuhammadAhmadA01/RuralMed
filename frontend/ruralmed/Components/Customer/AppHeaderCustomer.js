@@ -5,15 +5,38 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import IP_ADDRESS from "../../config/config";
 import NotificationsDisplay from "./NotificationsDisplay";
 import MenuCustomer from "./Menu";
-import useNotifications from "../../utils/useNotifications";
+import useFetchEmail from "../../utils/useFetchEmail";
 const AppHeaderCustomer = ({ navigation }) => {
   const [notificationsModalVisible, setNotificationsModalVisible] =
     useState(false);
   const [notificationsData, setNotificationsData] = useState([]);
-  
+  const email = useFetchEmail();
   const [showNotifications, setShowNotifications] = useState(false);
-  const {notificationCount, notifications, email}=useNotifications()
-  const [notificationsCount,setNotificationsCount]=useState(notificationCount)
+  const [notificationsCount, setNotificationCount] = useState(0);
+  useEffect(() => {
+    // Fetch notifications and count unread notifications
+    const fetchNotifications = async () => {
+      try {
+        const notificationsResponse = await fetch(
+          `http://${IP_ADDRESS}:5000/notifications/${email}/Customer`
+        );
+        const notificationsData = await notificationsResponse.json();
+          setNotificationsData(notificationsData)
+        // Count unread notifications
+        const unreadNotifications = notificationsData.filter(
+          (notification) => !notification.isOpenedByCustomer
+        );
+
+        // Update notification count state
+        setNotificationCount(unreadNotifications.length);
+      } catch (error) {
+        console.log("Error fetching notifications:", error);
+      }
+    };
+
+    // Fetch notifications on component mount
+    fetchNotifications();
+  }, [notificationsCount, email]); // Run only on component mount
   
   const handleNotificationsClick = async () => {
     try {
@@ -27,7 +50,7 @@ const AppHeaderCustomer = ({ navigation }) => {
 
       if (updateNotificationsResponse.ok) {
         // Set notification count to 0
-        setNotificationsCount(notificationCount);
+        setNotificationCount(0);
         setShowNotifications(true);
         // Show the notifications modal
         setNotificationsModalVisible(true);
@@ -35,7 +58,7 @@ const AppHeaderCustomer = ({ navigation }) => {
         console.error("Error updating notifications");
       }
     } catch (error) {
-      console.error("Error handling notifications click:", error);
+      console.log("Error handling notifications click:", error);
     }
   };
   return (
@@ -56,7 +79,7 @@ const AppHeaderCustomer = ({ navigation }) => {
         />
 {showNotifications && (
           <NotificationsDisplay
-            notifications={notifications}
+            notifications={notificationsData}
             onClose={() => setShowNotifications(false)}
           />
         )}

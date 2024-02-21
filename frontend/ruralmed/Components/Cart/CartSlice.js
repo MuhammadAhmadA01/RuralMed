@@ -61,13 +61,13 @@ const cartSlice = createSlice({
       const { productID, change } = action.payload;
       const item = state.cartItems.find((item) => item.productID === productID);
       if (item) {
+        console.log(item.quantity)
+        item.quantity = item.quantity + change;
         if (item.quantity == item.availableQuantity) {
-          Alert.alert(
-            "Limit Exceeds",
-            `Only ${item.availableQuantity} units are available`
-          );
+          console.log(item.availableQuantity)
+          
           return;
-        } else item.quantity = item.quantity + change;
+        } 
       }
     },
     clearCart: (state) => {

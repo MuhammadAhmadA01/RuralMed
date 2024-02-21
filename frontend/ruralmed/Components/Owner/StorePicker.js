@@ -9,14 +9,14 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 
-const StorePicker = ({ data, selectedValue, onSelect, onClose }) => {
+const StorePicker = ({ data, selectedValue, onSelect, onClose, navigation }) => {
   return (
     <Modal transparent animationType="fade" visible={true}>
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.modalContainer}>
           <View style={styles.pickerContainer}>
             <ScrollView>
-              {data.map((item) => (
+              {data.length ? data.map((item) => (
                 <TouchableOpacity
                   key={item.value}
                   style={[
@@ -30,7 +30,11 @@ const StorePicker = ({ data, selectedValue, onSelect, onClose }) => {
                 >
                   <Text style={styles.pickerText}>{item.label}</Text>
                 </TouchableOpacity>
-              ))}
+              )):
+              <TouchableOpacity onPress={()=>{navigation.replace('OwnerStoreScreen')}}>
+              <Text style={{marginLeft:55, fontSize:25, fontWeight:700, color:'#25d366'}}>Create Your First Store</Text>
+              </TouchableOpacity>
+              }
             </ScrollView>
           </View>
         </View>
