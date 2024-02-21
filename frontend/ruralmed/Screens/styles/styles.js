@@ -49,12 +49,12 @@ export const styles = StyleSheet.create({
     marginBottom: "5%",
   },
   input: {
-    height: windowHeight * 0.05, // Use a percentage of the window height
+    height: windowHeight * 0.06, // Use a percentage of the window height
     borderColor: "#25d366",
     borderWidth: 1,
     marginBottom: "3%", // Use percentage for margin
     paddingHorizontal: "3%", // Use percentage for padding
-    borderRadius: 8,
+    borderRadius: 50,
   },
   radioContainer: {
     marginTop: 10,
@@ -68,12 +68,13 @@ export const styles = StyleSheet.create({
   },
 
   signupButton: {
-    backgroundColor: "#25d366",
-    borderRadius: 10,
-    paddingVertical: "2%", // Use percentage for padding
+    padding: 14,
+    borderRadius: 50,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: "2%",
+    margin: 16,
+    backgroundColor: "#25d366",
+  
   },
   signupButtonText: {
     color: "#fff",
@@ -117,8 +118,8 @@ export const styles = StyleSheet.create({
   },
   roleButton: {
     backgroundColor: "transparent",
-    padding: "2%", // Use percentage for padding
-    borderRadius: 8,
+    padding: "4%", // Use percentage for padding
+    borderRadius: 50,
     borderWidth: 1,
     borderColor: "#25d366",
   },
@@ -137,11 +138,6 @@ export const styles = StyleSheet.create({
     marginBottom: "1%",
     fontSize:10
     // Use percentage for margin
-  },
-  mapContainer: {
-    marginTop: "3%", // Use percentage for margin
-    marginBottom: "5%", // Use percentage for margin
-    borderRadius: 8,
   },
   mapLabel: {
     fontSize: windowWidth * 0.05, // Use a percentage of the window width
@@ -192,12 +188,13 @@ export const styles = StyleSheet.create({
     borderRadius: 8,
   },
   loginButton: {
-    backgroundColor: "#25d366",
-    borderRadius: 10,
-    paddingVertical: "2%",
+    padding: 13,
+    borderRadius: 50,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: "3%",
+    margin: 16,
+    backgroundColor: "#25d366",
+  
   },
   loginButtonText: {
     color: "#fff",
