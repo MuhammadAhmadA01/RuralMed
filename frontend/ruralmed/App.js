@@ -3,33 +3,35 @@ import { useEffect, useState } from "react";
 import { DefaultTheme, Provider as PaperProvider } from "react-native-paper";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import CustomerScreen from "./Screens/Customer/CustomerInputScreen";
+import CustomerScreen from "./Screens/Customer/CustomerInputScreen/CustomerInputScreen";
 import LoginScreen from "./Screens/User/UserLoginScreen";
 import RiderScreen from "./Screens/Rider/RiderInputScreen";
 import StoreOwnerScreen from "./Screens/Owner/StoreOwnerScreen";
-import CustomerHomeScreen from "./Screens/Customer/CustomerHomeScreen";
+import CustomerHomeScreen from "./Screens/Customer/HomeScreen/CustomerHomeScreen";
 import OwnerHomeScreen from "./Screens/Owner/OwnerHomeScreen";
 import Signup from "./Screens/User/UserSignupScreen";
 import StoreScreen from "./Screens/Owner/OwnerCreateStoreScreen";
 import RiderHomeScreen from "./Screens/Rider/RiderHomeScreen";
-import StoreDetailsScreen from "./Screens/Customer/StoreDetailsScreen";
-import CartScreen from "./Screens/Customer/CartScreen";
+import StoreDetailsScreen from "./Screens/Customer/StoreDetails/StoreDetailsScreen";
+import CartScreen from "./Screens/Customer/CartScreen/CartScreen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Provider } from "react-redux"; // Import Provider from react-redux
 import { configureStore } from "@reduxjs/toolkit";
 import cartReducer from "./Components/Cart/CartSlice"; // Update the path
 import AddProductScreen from "./Screens/Owner/OwnerProductScreen";
 import AllStoresScreen from "./Screens/Owner/AllStoresScreen";
-import PlaceOrderScreen from "./Screens/Customer/PlaceOrderScreen";
-import LoadingScreen from "./Screens/Customer/OrderAnimation";
+import PlaceOrderScreen from "./Screens/Customer/PlaceOrder/PlaceOrderScreen";
+import LoadingScreen from "./Screens/Customer/OrderAnimation/OrderAnimation";
 import { ActivityIndicator, View } from "react-native";
-import OrderRiderScreenMap from "./Screens/Customer/OrderRiderScreenMap";
-import OrderConfirmationScreen from "./Screens/Customer/OrderRiderScreenMap";
-import RiderOrdersScreen from "./Screens/Rider/RiderOrders";
-import OwnerOrdersScreen from "./Screens/Owner/OwnerOrders";
-import UploadPrescriptionScreen from "./Screens/Customer/UploadPrescriptionScreen";
-import PrescriptionPlaceOrderScreen from "./Screens/Customer/PrescriptionPlaceOrder";
+import OrderConfirmationScreen from "./Screens/Customer/OrderConfirmation/OrderRiderScreenMap";
+import UploadPrescriptionScreen from "./Screens/Customer/UploadPrescription/UploadPrescriptionScreen";
+import PrescriptionPlaceOrderScreen from "./Screens/Customer/PlacePrescriptionOrder/PrescriptionPlaceOrder";
 import NotificatonOrderDetailScreen from "./Screens/Rider/DisplayNotificationScreen";
+import MapComponent from "./Screens/MapView/MapInputComponent";
+import CustomerAllOrders from "./Screens/Customer/CustomersAllOrders/CustomersAllOrders";
+import RatingReviewScreen from "./Screens/Customer/RatingReviewScreen/RatingReviewScreen";
+import ChatScreen from "./Screens/User/ChatScreen";
+import AllOrdersScreen from "./Screens/User/AllOrdersScreen";
 
 const store = configureStore({
   reducer: {
@@ -93,13 +95,21 @@ export default function App() {
             <Stack.Screen name="login" component={LoginScreen} />
             <Stack.Screen name="Rider" component={RiderScreen} />
             <Stack.Screen name="Owner" component={StoreOwnerScreen} />
+            <Stack.Screen name="MapInput" component={MapComponent}/>
+            <Stack.Screen name="RateScreen" component={RatingReviewScreen}/>
+   
             <Stack.Screen
-              name="RiderOrdersScreen"
-              component={RiderOrdersScreen}
+              name="AllOrdersScreen"
+              component={AllOrdersScreen}
             />
             <Stack.Screen
-              name="OwnerOrdersScreen"
-              component={OwnerOrdersScreen}
+              name="ChatScreen"
+              component={ChatScreen}
+            />
+            
+            <Stack.Screen
+              name="CustomersAllOrders"
+              component={CustomerAllOrders}
             />
             <Stack.Screen
               name="UploadPrescriptionScreen"
