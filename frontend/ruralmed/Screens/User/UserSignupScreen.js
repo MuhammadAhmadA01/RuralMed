@@ -94,6 +94,7 @@ const Signup = ({ navigation }) => {
     navigation.replace("login");
   };
   const handleSendOTP = () => {
+    setShowOtpModal(true)
     fetch(`http://${IP_ADDRESS}:5000/verify`, {
       method: "POST",
       headers: {
@@ -108,7 +109,6 @@ const Signup = ({ navigation }) => {
           // OTP sent successfully, show OTP input field
           setShowOtpModal(true);
           setOtp(responseData.otp)
-          Alert.alert("Success", `OTP sent at ${email}`);
         } else {
           // Handle error
           Alert.alert("Error", responseData.message);
@@ -324,7 +324,10 @@ const Signup = ({ navigation }) => {
                 bottom: 5,
               }}
               disabled={emailVerified}
-              onPress={handleSendOTP}
+              onPress={()=>{
+                setShowOtpModal(true)
+                handleSendOTP();
+              }}
             >
               <Text style={{ color: emailVerified ? "gray" : "#25d366", marginBottom: 9 }}>
                 {emailVerified ? "Verified" : "Verify Email"}

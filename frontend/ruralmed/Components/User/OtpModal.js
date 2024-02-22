@@ -12,12 +12,13 @@ const OTPModal = ({ visible, onSubmit, onClose,generatedOtp }) => {
     const seconds = timeLeft % 60;
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
-
+useEffect(()=>{setTimeLeft(60)},[])
   // Effect to update the timer every second
   useEffect(() => {
     if (timeLeft === 0) {
-      onClose(); // Close the modal when time expires
-    } else {
+      setTimeLeft(60)
+      onClose();
+     } else {
       const timer = setTimeout(() => {
         setTimeLeft(timeLeft - 1);
       }, 1000);
@@ -49,7 +50,7 @@ const OTPModal = ({ visible, onSubmit, onClose,generatedOtp }) => {
           style={{
             backgroundColor: "white",
             padding: 20,
-            borderRadius: 10,
+            borderRadius: 50,
             alignItems: "center",
             width:"80%",maxWidth:400
           }}
@@ -59,14 +60,11 @@ const OTPModal = ({ visible, onSubmit, onClose,generatedOtp }) => {
             style={{
               borderColor: "gray",
               borderWidth: 1,
-              borderRadius: 5,
+              borderRadius: 50,
               paddingTop: 10,
               paddingBottom: 10,
               paddingRight: 80,
               paddingLeft: 80,
-
-
-
               marginBottom: 10,
             }}
             placeholder="Enter OTP"
@@ -78,8 +76,8 @@ const OTPModal = ({ visible, onSubmit, onClose,generatedOtp }) => {
             style={{
               backgroundColor: "#25d366",
               padding: 10,
-              borderRadius: 5,
-              width: "100%",
+              borderRadius: 50,
+              width: "60%",
               alignItems: "center",
             }}
             onPress={handleVerify}
@@ -90,7 +88,10 @@ const OTPModal = ({ visible, onSubmit, onClose,generatedOtp }) => {
          
           <TouchableOpacity
             style={{ marginTop: 10 }}
-            onPress={onClose}
+            onPress={()=>{
+              setTimeLeft(60)
+              onClose();}
+          }
           >
             <Text style={{ color: "#25d366" }}>Cancel</Text>
           </TouchableOpacity>
