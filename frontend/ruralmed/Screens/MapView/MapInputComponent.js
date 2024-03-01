@@ -24,7 +24,7 @@ const MapScreen = ({ route, navigation }) => {
           return;
         }
         const location = await Location.getCurrentPositionAsync({});
-        const { latitude, longitude } = location.coords;
+        const { latitude, longitude } = {"latitude": 31.421794, "longitude": 73.065469};
         setCurrentLocation({
           name: "Current Location",
           coordinate: { latitude, longitude },
@@ -51,18 +51,23 @@ const MapScreen = ({ route, navigation }) => {
   };
 
   const handleShowCurrentLocation = () => {
+    
     if (currentLocation) {
+      const { latitude, longitude } = {"latitude": 31.421794, "longitude": 73.065469};
       setSelectedLocation(currentLocation);
+  
       mapViewRef.current.animateToRegion({
-        ...currentLocation.coordinate,
+        latitude,
+        longitude,
         latitudeDelta: 0.0922,
         longitudeDelta: 0.0421,
       });
+  
       onSelectLocation(currentLocation.coordinate);
       setIsFlatListVisible(false); // Hide FlatList when showing current location
     }
   };
-
+  
   const handleLocationSearch = () => {
     const apiUrl = `http://${IP_ADDRESS}:5000/api/search/${searchQuery}`;
 
@@ -143,8 +148,8 @@ const MapScreen = ({ route, navigation }) => {
         ref={mapViewRef}
         style={{ flex: 1 }}
         initialRegion={{
-          latitude: 37.7749,
-          longitude: -122.4194,
+          latitude: 31.421794,
+          longitude: 73.065469,
           latitudeDelta: 0.0922,
           longitudeDelta: 0.0421,
         }}
