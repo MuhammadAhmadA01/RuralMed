@@ -173,6 +173,55 @@ const signupController = (req, res) => {
         .json({ error: error.message || "Internal Server Error" });
     });
 };
+
+const updateUserFieldController = (req, res) => {
+  // Extract data from request body
+  const { fieldName, updatedValue, email } = req.body;
+
+  // Define the fields that can be updated
+  const allowedFields = ['contactNumber', 'address', 'cityNearBy'];
+
+  // Check if the provided field name is allowed to be updated
+  if (!allowedFields.includes(fieldName)) {
+    return res.status(400).json({ error: 'Invalid field name' });
+  }
+
+  // Find the user based on the provided email
+  User.findOne({ where: { email } })
+    .then((user) => {
+      if (!user) {
+        throw { status: 404, message: 'User not found' };
+      }
+
+      // Check if the field to be updated is contactNumber
+      if (fieldName === 'contactNumber') {
+        // Check if the updated contact number already exists in the database
+        return User.findOne({ where: { contactNumber: updatedValue } }).then((existingUser) => {
+          if (existingUser && existingUser.email !== email) {
+            // If the contact number exists for another user, send failure response
+            throw { status: 400, message: 'Contact number already exists' };
+          }
+          // Update the specified field
+          user[fieldName] = updatedValue;
+          // Save the updated user
+          return user.save();
+        });
+      } else {
+        // For other fields, directly update and save the user
+        user[fieldName] = updatedValue;
+        return user.save();
+      }
+    })
+    .then((updatedUser) => {
+      res.status(200).json({ success: true, updatedUser });
+    })
+    .catch((error) => {
+      console.error('Error updating user field:', error);
+      const status = error.status || 500;
+      res.status(status).json({ error: error.message || 'Internal Server Error' });
+    });
+};
+
 const validateUserDataController = (req, res) => {
   // Extract user data from request body
   const { email, contactNumber } = req.body;
@@ -446,5 +495,5 @@ module.exports = {
   getOrderById,
   getProductById,
   sendOTP,
-  verifyOTP
+  verifyOTP,updateUserFieldController
 };
