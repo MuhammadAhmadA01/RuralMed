@@ -480,6 +480,31 @@ const getProductById = async (req, res) => {
   }
 };
 
+const updateUserAddress = async (req, res) => {
+  try {
+    console.log(req.body)
+    const { address, userEmail } = req.body;
+
+    // Find the user by email
+    const user = await User.findOne({ where: { email:userEmail } });
+
+    if (!user) {
+      // If user with the provided email is not found, send a 404 response
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Update the user's address
+    user.address = address;
+    await user.save();
+
+    // Send a success response
+    res.status(200).json({ success: true, message: 'Address updated successfully' });
+  } catch (error) {
+    // If any error occurs, send a 500 response with the error message
+    console.error('Error updating user address:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
 module.exports = {
   signupController,
   loginController,
@@ -495,5 +520,6 @@ module.exports = {
   getOrderById,
   getProductById,
   sendOTP,
-  verifyOTP,updateUserFieldController
+  verifyOTP,updateUserFieldController,
+  updateUserAddress
 };
