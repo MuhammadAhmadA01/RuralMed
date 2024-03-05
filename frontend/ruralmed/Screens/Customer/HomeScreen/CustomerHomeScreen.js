@@ -5,12 +5,11 @@ import { useSelector } from "react-redux";
 import { selectCartCount } from "../../../Components/Cart/CartSelector";
 import {
   View,
-  ScrollView,
   StatusBar,
   Dimensions,
   BackHandler,
-  ActivityIndicator,
 } from "react-native";
+import Stores from './Components/customerStores'
 import { Badge, Appbar, Searchbar, FAB, Title, Text } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -367,53 +366,21 @@ const CustomerHomeScreen = ({ navigation }) => {
         }}
         onPress={() => {
           navigation.navigate("ChatScreen");
-        }}
-      />
-      <ScrollView>
-        <Title
-          style={{
-            marginLeft: "3%",
-            color: "#25d366",
-            fontWeight: "700",
-            marginTop: "2%",
-          }}
-        >
-          Categories
-        </Title>
-        <Chips
-          handleStoreType={handleStoreTypeChange}
+        }}></FAB>
+  <Stores
+          handleStoreCardPress={handleStoreCardPress}
+          handleStoreTypeChange={handleStoreTypeChange}
           selectedStoreType={selectedStoreType}
-        ></Chips>
-        <Title
-          style={{ marginLeft: "3%", color: "#25d366", fontWeight: "700" }}
-        >
-          Featured Stores
-        </Title>
-
-        <ScrollView>
-          {isLoading ? (
-            <ActivityIndicator size="large" color="#25d366" margin={200} />
-          ) : filteredStores.length > 0 ? (
-            filteredStores.map((store, index) => (
-              <CardView
-                key={store.storeID}
-                emailUser={emailUser}
-                store={store}
-                navigation={navigation}
-                contactNumberCustomer={contactNumberCustomer}
-                locationNames={locationNames}
-                index={index}
-                handleStoreCardPress={handleStoreCardPress}
-              ></CardView>
-            ))
-          ) : (
-            <Text style={{ margin: "35%", fontWeight: "700" }}>
-              {storesFound ? "Loading stores..." : "No stores found"}
-            </Text>
-          )}
-        </ScrollView>
-      </ScrollView>
-    </View>
+          isLoading={isLoading}
+          filteredStores={filteredStores}
+          emailUser={emailUser}
+          contactNumberCustomer={contactNumberCustomer}
+          locationNames={locationNames}
+          storesFound={storesFound}
+          navigation={navigation}
+        />     
+    
+      </View>
   );
 };
 export default CustomerHomeScreen;
