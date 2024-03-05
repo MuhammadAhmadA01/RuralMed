@@ -24,6 +24,14 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       justifyContent: 'flex-start',
     },
+    editIconContainer: {
+      position: "absolute",
+      bottom: 0,
+      right: 0,
+      marginBottom: 11,
+      padding: 12,
+    },
+    
     avatar: {
       marginBottom: 20,
     },
