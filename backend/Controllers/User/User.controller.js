@@ -505,6 +505,51 @@ const updateUserAddress = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+const getOrderCounts = async (req, res) => {
+  try {
+    const { email, role } = req.body;
+
+    // Check ifrole is 'Customer'
+    if (role === 'Customer') {
+      // Get count of orders for the given customerID
+      const totalOrders = await Order.count({ where: { customerID: email } });
+
+      // Get count of reviewed orders for the given customerID
+      const reviewedOrders = await Order.count({ where: { customerID: email, hasReviewed: true } });
+
+      return res.status(200).json({ totalOrders, reviewedOrders });
+    }
+
+    // Check if role is 'Rider'
+    if (role === 'Rider') {
+      // Get count of orders for the given riderId
+      const totalOrders = await Order.count({ where: { riderId: email } });
+
+      // Get count of reviewed orders for the given riderId
+      const reviewedOrders = await Order.count({ where: { riderId: email, hasReviewed: true } });
+
+      return res.status(200).json({ totalOrders, reviewedOrders });
+    }
+
+    // Check if role is 'Owner'
+    if (role === 'Owner') {
+      // Get count of orders for the given ownerId
+      const totalOrders = await Order.count({ where: { ownerId: email } });
+
+      // Get count of reviewed orders for the given ownerId
+      const reviewedOrders = await Order.count({ where: { ownerId: email, hasReviewed: true } });
+
+      return res.status(200).json({ totalOrders, reviewedOrders });
+    }
+
+    // If role is neither 'Customer', 'Rider', nor 'Owner'
+    return res.status(400).json({ message: 'Invalid role provided' });
+  } catch (error) {
+    console.error('Error getting order counts:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
 module.exports = {
   signupController,
   loginController,
@@ -521,5 +566,6 @@ module.exports = {
   getProductById,
   sendOTP,
   verifyOTP,updateUserFieldController,
-  updateUserAddress
+  updateUserAddress,
+  getOrderCounts
 };
