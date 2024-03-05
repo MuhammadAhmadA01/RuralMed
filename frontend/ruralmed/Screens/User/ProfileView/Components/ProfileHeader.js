@@ -11,6 +11,10 @@ const ProfileHeader = ({ user }) => {
         source={{ uri: user.picture }}
         style={styles.avatar}
       />
+       <View style={styles.editIconContainer}>
+          <Ionicons name="md-camera" size={30} color="white"   />
+          </View>
+     
       <Text style={styles.userName}>{`${user.firstName} ${user.lastName}`}</Text>
     </View>
   );
