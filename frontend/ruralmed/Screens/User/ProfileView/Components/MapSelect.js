@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import styles from '../Styles/styles';
+
 const MapSelect = ({ navigation, handleLocationSelection }) => {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>

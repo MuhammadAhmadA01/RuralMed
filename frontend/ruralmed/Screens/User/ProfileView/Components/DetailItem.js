@@ -23,9 +23,10 @@ const DetailItem = ({ label, value, editingField, handleEdit, handleUpdate, onCh
       ) : (
         <Text>{value}</Text>
       )}
-      <Button onPress={editingField ? handleUpdate : ()=>{handleEdit(editingField)}}>
+      {!(label==='Email') && <Button onPress={editingField ? handleUpdate : ()=>{handleEdit(editingField)}}>
         {editingField ? 'Update' : 'Edit'}
       </Button>
+}
     </View>
   );
 };
