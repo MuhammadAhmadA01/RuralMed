@@ -367,7 +367,8 @@ const CustomerHomeScreen = ({ navigation }) => {
         onPress={() => {
           navigation.navigate("ChatScreen");
         }}></FAB>
-  <Stores
+   {selectedOption === "Browse Stores" ? (
+        <Stores
           handleStoreCardPress={handleStoreCardPress}
           handleStoreTypeChange={handleStoreTypeChange}
           selectedStoreType={selectedStoreType}
@@ -378,8 +379,13 @@ const CustomerHomeScreen = ({ navigation }) => {
           locationNames={locationNames}
           storesFound={storesFound}
           navigation={navigation}
-        />     
-    
+        />
+      ) : (
+<CustomerDvms navigation={navigation} ></CustomerDvms>
+)}      
+ <OptionBar selectedOption={selectedOption} onSelectOption={handleSelectOption} />
+
+  
       </View>
   );
 };
