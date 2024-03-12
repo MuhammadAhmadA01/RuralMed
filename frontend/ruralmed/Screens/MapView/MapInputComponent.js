@@ -59,8 +59,8 @@ const MapScreen = ({ route, navigation }) => {
       mapViewRef.current.animateToRegion({
         latitude,
         longitude,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
+        latitudeDelta: 0.0923,
+        longitudeDelta: 0.0422,
       });
   
       onSelectLocation(currentLocation.coordinate);
@@ -102,8 +102,8 @@ const MapScreen = ({ route, navigation }) => {
       mapViewRef.current.animateToRegion({
         latitude,
         longitude,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
+        latitudeDelta: 0.0923,
+        longitudeDelta: 0.0422,
       });
 
       setIsFlatListVisible(false); // Hide FlatList when an item is selected
