@@ -1,5 +1,8 @@
 const DVM = require('../../Models/DVM/DVM'); // Assuming the DVM model is defined in a separate file
 const User=require('../../Models/User/User')
+const { sequelize, DataTypes } = require("../../config/config");
+const { Sequelize, literal, fn, col, Op } = require("sequelize");
+const Meeting_Notification = require("../../Models/Notifications/Meeting_Notifications");
 const Meeting=require('../../Models/Meeting/Meeting')
 // Controller function to add data to the DVM table
 const addDVM = async (req, res) => {
@@ -157,6 +160,30 @@ const getDvmMonthlyStats = (req, res) => {
     });
 };
 
+const updateNotifications = async (req, res) => {
+  try {
+    const { email, role } = req.params;
+    // Fetch notifications based on the provided email and role
+    const notifications =
+      // Update isOpenedBy for the fetched notifications
+      await Meeting_Notification.update(
+        { [`isOpenedBy${role}`]: true },
+        {
+          where: {
+            [Op.and]: [
+              { [`${role.toLowerCase()}Id`]: email },
+              { [`isOpenedBy${role}`]: false },
+            ],
+          },
+        }
+      );
+
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error("Error updating notifications:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
 
 // Export the controller function
-module.exports = { addDVM, getAllDVMs, getDvmMonthlyStats};
+module.exports = { addDVM, getAllDVMs, getDvmMonthlyStats, updateNotifications};
