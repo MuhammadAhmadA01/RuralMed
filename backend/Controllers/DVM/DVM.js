@@ -194,5 +194,26 @@ const createNotificationMeeting = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+const getNotificationsMeetings = async (req, res) => {
+  try {
+    const { email } = req.params;
+
+    // Fetch notifications based on the provided email and role
+    const notifications = await Meeting_Notification.findAll({
+      where: {
+        [Op.or]: [{ dvmId: email }, { customerId: email }],
+      },
+    });
+
+    // Update isOpenedBy for the fetched notifications
+
+    return res.status(200).json(notifications);
+  } catch (error) {
+    console.error("Error fetching and updating notifications:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 // Export the controller function
-module.exports = { addDVM, getAllDVMs, getDvmMonthlyStats, updateNotifications, createNotificationMeeting};
+module.exports = { addDVM, getAllDVMs, getDvmMonthlyStats, updateNotifications, createNotificationMeeting,getNotificationsMeetings};
