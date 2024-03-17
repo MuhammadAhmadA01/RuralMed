@@ -1,5 +1,6 @@
 const DVM = require('../../Models/DVM/DVM'); // Assuming the DVM model is defined in a separate file
 const User=require('../../Models/User/User')
+const Meeting=require('../../Models/Meeting/Meeting')
 // Controller function to add data to the DVM table
 const addDVM = async (req, res) => {
   try {
@@ -57,5 +58,105 @@ const getAllDVMs = async (req, res) => {
   }
 };
 
+const getDvmMonthlyStats = (req, res) => {
+  const { dvmId } = req.params;
+
+  // Calculate the start and end date of the current month
+  const currentDate = new Date();
+  const startDate = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    1
+  );
+  const endDate = currentDate;
+
+  // Calculate the start and end date of the previous month
+  const lastMonthStartDate = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth() - 1,
+    1
+  );
+  const lastMonthEndDate = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    0
+  );
+
+  let prevMonthResults;
+  let currentMonthStats; // Declare variable outside the scope
+
+  // Earning and number of Meetings in previous month from current date
+  Meeting.findOne({
+    attributes: [
+      [
+        sequelize.literal(
+          'SUM(CASE WHEN "status" = \'completed\' AND "scheduledDate" BETWEEN :start AND :end THEN "meetingFee" ELSE 0 END)'
+        ),
+        "prevMonthEarning",
+      ],
+      [
+        sequelize.literal(
+          'COUNT(CASE WHEN "status" = \'completed\' AND "scheduledDate" BETWEEN :start AND :end THEN 1 END)'
+        ),
+        "prevMonthMeetings",
+      ],
+    ],
+    where: {
+      dvmId,
+    },
+    replacements: { start: lastMonthStartDate, end: lastMonthEndDate },
+  })
+    .then((results) => {
+      prevMonthResults = results.get({ plain: true });
+      // Earning and number of Meetings in current month from 1st date to current date
+      return Meeting.findOne({
+        attributes: [
+          [
+            sequelize.literal(
+              'SUM(CASE WHEN "status" = \'completed\' AND "scheduledDate" BETWEEN :start AND :end THEN "meetingFee" ELSE 0 END)'
+            ),
+            "currentMonthEarning",
+          ],
+          [
+            sequelize.literal(
+              'COUNT(CASE WHEN "status" = \'completed\' AND "scheduledDate" BETWEEN :start AND :end THEN 1 END)'
+            ),
+            "currentMonthMeetings",
+          ],
+        ],
+        where: {
+          dvmId,
+        },
+        replacements: { start: startDate, end: endDate },
+      });
+    })
+    .then((currentMonthResults) => {
+      currentMonthStats = currentMonthResults.get({ plain: true });
+      return Meeting.count({
+        where: {
+          dvmId,
+          status: "Scheduled",
+        },
+      }).then((inProgressMeetings) => {
+        // Construct the final response
+        const result = {
+          prevMonthEarning: prevMonthResults.prevMonthEarning || 0,
+          prevMonthMeetings: prevMonthResults.prevMonthmeetings || 0,
+          currentMonthEarning: currentMonthStats.currentMonthEarning || 0,
+          currentMonthMeetings: currentMonthStats.currentMonthMeetings || 0,
+          inProgressMeetings: inProgressMeetings,
+        };
+
+        // Send the response
+        res.json(result);
+      });
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    });
+};
+
+
 // Export the controller function
-module.exports = { addDVM, getAllDVMs};
+module.exports = { addDVM, getAllDVMs, getDvmMonthlyStats};
