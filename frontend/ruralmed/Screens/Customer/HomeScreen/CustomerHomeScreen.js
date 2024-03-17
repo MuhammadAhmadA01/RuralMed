@@ -1,32 +1,28 @@
-import Chips from "./Components/Chips";
 import useFetchEmail from "../../../utils/useFetchEmail";
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useSelector } from "react-redux";
+import OptionBar from "./Components/OptionBar";
 import { selectCartCount } from "../../../Components/Cart/CartSelector";
 import {
   View,
-  ScrollView,
   StatusBar,
-  Dimensions,
   BackHandler,
-  ActivityIndicator,
 } from "react-native";
-import { Badge, Appbar, Searchbar, FAB, Title, Text } from "react-native-paper";
+import { Badge, Appbar, Searchbar, FAB} from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
 import { useDispatch } from "react-redux";
 import IP_ADDRESS from "../../../config/config";
-import {
-  addToCart,
-  removeFromCart,
-  clearCart,
-} from "../../../Components/Cart/CartSlice";
+import { addToCart } from "../../../Components/Cart/CartSlice";
 import NotificationsDisplay from "../../../Components/Customer/NotificationsDisplay";
 import Menubar from "./Components/Menubar";
-import CardView from "./Components/CardView";
+import Chips from "./Components/Chips";
+import { styles } from "./styles";
+import Stores from "./Components/customerStores";
+import CustomerDvms from "./Components/customerDvms";
 const CustomerHomeScreen = ({ navigation }) => {
   const email = useFetchEmail();
   const dispatch = useDispatch();
+  const [selectedOption, setSelectedOption] = useState('Browse Stores');
   const [searchQuery, setSearchQuery] = useState("");
   const [isMapViewVisible, setMapViewVisible] = useState(false);
   const [selectedStoreType, setSelectedStoreType] = useState("All");
@@ -36,19 +32,19 @@ const CustomerHomeScreen = ({ navigation }) => {
   const isFirstRender = useRef(true);
   const [notifications, setNotifications] = useState([]);
   const cartCount = useSelector(selectCartCount);
-  const [isDataLoading, setIsDataLoading] = useState(false); // New state to track data loading
   const [contactNumberCustomer, setContactNumber] = useState("");
   const [originalStores, setOriginalStores] = useState([]);
   const [filteredStores, setFilteredStores] = useState([]);
   const [emailUser, setEmailUser] = useState("");
-  const windowHeight = Dimensions.get("window").height;
   const [notificationCount, setNotificationCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [filteredCardsData, setFilteredCardsData] = useState([]);
 
-  useEffect(() => {
-   
-  }, [email]); // Add email to the dependency array to trigger the effect when email changes
-
+  const handleSelectOption = (option) => {
+    setSelectedOption(option);
+    // Handle navigation or rendering of corresponding component based on the selected option
+  };
+  useEffect(() => {}, [email]);
   useEffect(() => {
     const fetchLocationNames = async () => {
       try {
@@ -70,16 +66,13 @@ const CustomerHomeScreen = ({ navigation }) => {
               data.features[0].properties.district || "Unknown";
           return locationName;
         });
-
         const locationNameResults = await Promise.all(promises);
-
         setLocationNames(locationNameResults);
         setIsLoading(false);
         setStoresFound(true);
       } catch (error) {
         console.log("Error fetching location names:", error);
         setIsLoading(false);
-        setIsDataLoading(false);
         setStoresFound(false);
       }
     };
@@ -91,8 +84,6 @@ const CustomerHomeScreen = ({ navigation }) => {
         const contactNumber = await AsyncStorage.getItem("phone");
         setContactNumber(contactNumber);
         setEmailUser(email);
-
-        // Use the email data as needed
         fetch(`http://${IP_ADDRESS}:5000/get-stores/${email}`, {
           method: "GET",
           headers: {
@@ -101,7 +92,6 @@ const CustomerHomeScreen = ({ navigation }) => {
         })
           .then((response) => response.json())
           .then((stores) => {
-            // Update the state with the fetched stores
             if (stores.success) {
               const ridersData = stores.riders.join(",");
               AsyncStorage.setItem("riders", ridersData);
@@ -120,99 +110,81 @@ const CustomerHomeScreen = ({ navigation }) => {
         console.log("Error fetching contact number:", error);
       }
     };
-
     getContactEmail();
   }, [email]);
   useEffect(() => {
-    // Fetch notifications and count unread notifications
     const fetchNotifications = async () => {
       try {
         const notificationsResponse = await fetch(
           `http://${IP_ADDRESS}:5000/notifications/${email}/Customer`
         );
         const notificationsData = await notificationsResponse.json();
-
-        // Count unread notifications
         const unreadNotifications = notificationsData.filter(
           (notification) => !notification.isOpenedByCustomer
         );
-
-        // Update notification count state
-        setNotificationCount(unreadNotifications.length);
-      } catch (error) {
+        const meetingsNotificationsResponse = await fetch(
+          `http://${IP_ADDRESS}:5000/get-meeting-notifications/${email}`
+        );
+        const meetingNotificationsData = await meetingsNotificationsResponse.json();
+        const meetingUnreadNotifications = meetingNotificationsData.filter(
+          (notification) => !notification.isOpenedByCustomer
+        );
+        
+       setNotificationCount(unreadNotifications.length+meetingUnreadNotifications.length)
+         } catch (error) {
         console.log("Error fetching notifications:", error);
       }
     };
-
-    // Fetch notifications on component mount
     fetchNotifications();
   }, [notificationCount, email]); // Run only on component mount
   useEffect(() => {
-    // Fetch cart details and update Redux store
     const fetchCartDetails = async () => {
       try {
         const response = await fetch(
           `http://${IP_ADDRESS}:5000/get-cart/${contactNumberCustomer}`
         );
         const data = await response.json();
-        if (data.success) {
-          console.log(data.cartDetails)
+        if (data.success)
           data.cartDetails.forEach((product) => {
-           // console.log(product)
             dispatch(addToCart(product));
           });
-        }
       } catch (error) {
         console.log("Error fetching cart details:", error);
       }
     };
-
-    if (!isFirstRender.current) {
-      fetchCartDetails();
-    } else {
-      isFirstRender.current = false;
-    }
+    if (!isFirstRender.current) fetchCartDetails();
+    else isFirstRender.current = false;
   }, [contactNumberCustomer, isFirstRender]);
   useEffect(() => {
-    // Add a back button listener to handle back key press
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
       handleBackPress
     );
-
-    // Clean up the back button listener when the component unmounts
     return () => backHandler.remove();
   }, [handleBackPress]);
   const handleBackPress = useCallback(() => {
-    // If the search query is not empty, handle backspace to update the filtered list
     if (searchQuery.length > 0) {
       const newQuery = searchQuery.slice(0, -1); // Remove the last character
       setSearchQuery(newQuery);
-
-      // Update filtered stores based on the new query
       const filterStores = originalStores.filter((store) =>
         store.storeName.toLowerCase().includes(newQuery.toLowerCase())
       );
       setFilteredStores(filterStores);
-
       return true; // Prevent default back action
     }
     return false; // Allow default back action
   }, [searchQuery, originalStores]);
-
   const handleStoreTypeChange = (type) => {
     setSelectedStoreType(type);
-
-    // Update filtered stores based on the selected store type
     const storesToFilter = Array.isArray(originalStores) ? originalStores : [];
     const filterStores = storesToFilter.filter(
       (store) => type === "All" || store.storeType === type
     );
-
     setFilteredStores(filterStores);
     setStoresFound(false);
   };
   const handleSearch = (query) => {
+    if(selectedOption=="Browse Stores"){
     setSearchQuery(query);
 
     const filterStores = originalStores.filter(
@@ -221,20 +193,19 @@ const CustomerHomeScreen = ({ navigation }) => {
         (selectedStoreType === "All" || store.storeType === selectedStoreType)
     );
     setFilteredStores(filterStores);
+    }
+    else{
+
+    }
   };
   const handleStoreCardPress = async (store) => {
     try {
-      // Fetch all products for the selected store
       const response = await fetch(
         `http://${IP_ADDRESS}:5000/products/${store.storeID}`
       );
-
-      if (!response.ok) {
+      if (!response.ok)
         throw new Error(`Error fetching products for store ${store.storeID}`);
-      }
-
       const products = await response.json();
-      // Navigate to the StoreDetailsScreen with the selected store data and products
       navigation.navigate("StoreDetails", {
         store,
         products,
@@ -242,13 +213,10 @@ const CustomerHomeScreen = ({ navigation }) => {
       });
     } catch (error) {
       console.log("Error in handleStoreCardPress:", error);
-      // Handle the error as needed (e.g., show an error message to the user)
     }
   };
   const handleNotificationsClick = async () => {
     try {
-
-      // Update notifications as opened for the customer
       const updateNotificationsResponse = await fetch(
         `http://${IP_ADDRESS}:5000/update-notifications/${emailUser}/Customer`,
         {
@@ -256,51 +224,55 @@ const CustomerHomeScreen = ({ navigation }) => {
         }
       );
       if (updateNotificationsResponse.ok) {
-        // Set notification count to 0
         const notificationsResponse = await fetch(
           `http://${IP_ADDRESS}:5000/notifications/${emailUser}/Customer`
         );
         const notificationsData = await notificationsResponse.json();
-
-        // Update notification count state
-        setNotificationCount(0);
-
-        // Update the state with notifications data
-        setNotifications(notificationsData);
         setShowNotifications(true);
-      } else {
-        console.log("Error updating notifications");
-      }
+
+        //
+      const updateMeetingNotificationsResponse = await fetch(
+        `http://${IP_ADDRESS}:5000/update-notifications-meeting/${emailUser}/Customer`,
+        {
+          method: "PUT",
+        }
+      );
+      if (updateMeetingNotificationsResponse.ok) {
+        const meetingNotificationsResponse = await fetch(
+          `http://${IP_ADDRESS}:5000/get-meeting-notifications/${emailUser}`
+        );
+        const meetingNotificationsData = await meetingNotificationsResponse.json();
+        console.log(meetingNotificationsData,notificationsData)
+        setNotificationCount(0);
+        const notificationsArray = [...meetingNotificationsData, ...notificationsData];
+
+          console.log(notificationsArray)
+      // Set the notifications with the array
+      setNotifications(notificationsArray);
+        setShowNotifications(true);
+      }} else console.log("Error updating notifications");
     } catch (error) {
       console.log("Error handling notifications click:", error);
     }
   };
 
   return (
-    <View style={{ flex: 1 }}>
-      {/* Customize status bar color */}
-      <StatusBar
-        backgroundColor="#25d366"
-        barStyle="light-content"
-        translucent={true}
-        height={20}
-      />
-
-      {/* Appbar/Header */}
-      <Appbar.Header>
+    <View style={styles.container}>
+      <StatusBar backgroundColor="#25d366" />
+      <Appbar.Header style={styles.appbarHeader}>
         <Menubar navigation={navigation}></Menubar>
-        {!isMapViewVisible ? (
+        {!isMapViewVisible && selectedOption==="Browse Stores" ? (
           <Searchbar
-            placeholder="Search stores..."
+            placeholder={selectedOption=="Browse Stores"?"Search stores...":"Search DVMs..."}
             onChangeText={handleSearch}
             value={searchQuery}
-            style={{
-              flex: 1,
-              backgroundColor: "transparent",
-              elevation: 0,
-              display: isMapViewVisible ? "none" : "flex",
-            }}
-            inputStyle={{ color: "black" }}
+            style={[
+              {
+                display: isMapViewVisible ? "none" : "flex",
+              },
+              styles.searchbar,
+            ]}
+            inputStyle={styles.searchInput}
           />
         ) : (
           <Appbar.Content title="RuralMed" style={{ alignItems: "center" }} />
@@ -311,30 +283,10 @@ const CustomerHomeScreen = ({ navigation }) => {
             onClose={() => setShowNotifications(false)}
           />
         )}
-        <Badge
-          visible={notificationCount > 0}
-          size={23}
-          style={{
-            position: "absolute",
-            top: 8,
-            right: 55, // Adjust the position as needed
-            backgroundColor: "#25d366",
-            color: "black",
-          }}
-        >
+        <Badge visible={notificationCount > 0} size={23} style={styles.notBadge} >
           {notificationCount}
         </Badge>
-        <Badge
-          visible={cartCount > 0}
-          size={23}
-          style={{
-            position: "absolute",
-            top: 8,
-            right: 8,
-            backgroundColor: "#25d366",
-            color: "black",
-          }}
-        >
+        <Badge visible={cartCount > 0} style={styles.badge} size={23}>
           {cartCount}
         </Badge>
         {!isMapViewVisible ? (
@@ -352,68 +304,36 @@ const CustomerHomeScreen = ({ navigation }) => {
         />
       </Appbar.Header>
       <FAB
-        label="Get Help"
-        size="large"
+        icon="help"
+        size="mediu"
         color="white"
-        style={{
-          position: "absolute",
-          margin: 6,
-          right: 0,
-          paddingLeft:10,
-          paddingRight:10,
-          bottom: isMapViewVisible ? windowHeight * 0 : 0,
-          backgroundColor: "#25d366",
-          zIndex: 1,
-        }}
+        style={styles.fab}
         onPress={() => {
           navigation.navigate("ChatScreen");
         }}
-      />
-      <ScrollView>
-        <Title
-          style={{
-            marginLeft: "3%",
-            color: "#25d366",
-            fontWeight: "700",
-            marginTop: "2%",
-          }}
-        >
-          Categories
-        </Title>
-        <Chips
-          handleStoreType={handleStoreTypeChange}
+      /> 
+      <View style={{marginTop:6}}>
+      
+      </View>
+      {selectedOption === "Browse Stores" ? (
+        <Stores
+          handleStoreCardPress={handleStoreCardPress}
+          handleStoreTypeChange={handleStoreTypeChange}
           selectedStoreType={selectedStoreType}
-        ></Chips>
-        <Title
-          style={{ marginLeft: "3%", color: "#25d366", fontWeight: "700" }}
-        >
-          Featured Stores
-        </Title>
+          isLoading={isLoading}
+          filteredStores={filteredStores}
+          emailUser={emailUser}
+          contactNumberCustomer={contactNumberCustomer}
+          locationNames={locationNames}
+          storesFound={storesFound}
+          navigation={navigation}
+        />
+      ) : (
+<CustomerDvms navigation={navigation} ></CustomerDvms>
+)}      
+ <OptionBar selectedOption={selectedOption} onSelectOption={handleSelectOption} />
 
-        <ScrollView>
-          {isLoading ? (
-            <ActivityIndicator size="large" color="#25d366" margin={200} />
-          ) : filteredStores.length > 0 ? (
-            filteredStores.map((store, index) => (
-              <CardView
-                key={store.storeID}
-                emailUser={emailUser}
-                store={store}
-                navigation={navigation}
-                contactNumberCustomer={contactNumberCustomer}
-                locationNames={locationNames}
-                index={index}
-                handleStoreCardPress={handleStoreCardPress}
-              ></CardView>
-            ))
-          ) : (
-            <Text style={{ margin: "35%", fontWeight: "700" }}>
-              {storesFound ? "Loading stores..." : "No stores found"}
-            </Text>
-          )}
-        </ScrollView>
-      </ScrollView>
-    </View>
+         </View>
   );
 };
 export default CustomerHomeScreen;

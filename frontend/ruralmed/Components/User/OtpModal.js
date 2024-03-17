@@ -12,13 +12,12 @@ const OTPModal = ({ visible, onSubmit, onClose,generatedOtp }) => {
     const seconds = timeLeft % 60;
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
-useEffect(()=>{setTimeLeft(60)},[])
+
   // Effect to update the timer every second
   useEffect(() => {
     if (timeLeft === 0) {
-      setTimeLeft(60)
-      onClose();
-     } else {
+      onClose(); // Close the modal when time expires
+    } else {
       const timer = setTimeout(() => {
         setTimeLeft(timeLeft - 1);
       }, 1000);
@@ -50,7 +49,7 @@ useEffect(()=>{setTimeLeft(60)},[])
           style={{
             backgroundColor: "white",
             padding: 20,
-            borderRadius: 50,
+            borderRadius: 10,
             alignItems: "center",
             width:"80%",maxWidth:400
           }}
@@ -60,11 +59,14 @@ useEffect(()=>{setTimeLeft(60)},[])
             style={{
               borderColor: "gray",
               borderWidth: 1,
-              borderRadius: 50,
+              borderRadius: 5,
               paddingTop: 10,
               paddingBottom: 10,
               paddingRight: 80,
               paddingLeft: 80,
+
+
+
               marginBottom: 10,
             }}
             placeholder="Enter OTP"
@@ -76,8 +78,8 @@ useEffect(()=>{setTimeLeft(60)},[])
             style={{
               backgroundColor: "#25d366",
               padding: 10,
-              borderRadius: 50,
-              width: "60%",
+              borderRadius: 5,
+              width: "100%",
               alignItems: "center",
             }}
             onPress={handleVerify}
@@ -88,10 +90,7 @@ useEffect(()=>{setTimeLeft(60)},[])
          
           <TouchableOpacity
             style={{ marginTop: 10 }}
-            onPress={()=>{
-              setTimeLeft(60)
-              onClose();}
-          }
+            onPress={onClose}
           >
             <Text style={{ color: "#25d366" }}>Cancel</Text>
           </TouchableOpacity>

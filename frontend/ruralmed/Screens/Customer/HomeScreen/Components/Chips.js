@@ -1,6 +1,6 @@
 import { View } from "react-native";
 import { Chip } from "react-native-paper";
-const Chips = ({ selectedStoreType,handleStoreType }) => {
+const Chips = ({ selectedStoreType,handleStoreType,categories }) => {
   return (
     <View
       style={{
@@ -9,7 +9,7 @@ const Chips = ({ selectedStoreType,handleStoreType }) => {
         marginVertical: "2%",
       }}
     >
-      {["All", "Pharmacy", "Veteran", "Agricultural"].map((type) => (
+      {categories.map((type) => (
         <Chip
           key={type}
           mode={selectedStoreType === type ? "outlined" : "flat"}
