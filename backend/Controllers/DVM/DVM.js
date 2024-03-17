@@ -185,5 +185,14 @@ const updateNotifications = async (req, res) => {
   }
 };
 
+const createNotificationMeeting = async (req, res) => {
+  try {
+    const notification = await Meeting_Notification.create(req.body);
+    res.status(201).json(notification);
+  } catch (error) {
+    console.error("Error creating notification:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
 // Export the controller function
-module.exports = { addDVM, getAllDVMs, getDvmMonthlyStats, updateNotifications};
+module.exports = { addDVM, getAllDVMs, getDvmMonthlyStats, updateNotifications, createNotificationMeeting};
