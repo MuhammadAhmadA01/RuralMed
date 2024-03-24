@@ -550,6 +550,70 @@ const getOrderCounts = async (req, res) => {
   }
 };
 
+// Controller method to send OTP
+const sendOrderEmail =  async (req, res) => {
+
+  const { newOrder } = req.body;
+  console.log(newOrder)
+  
+  const mailOptions = {
+    from: 'ruralmed123@gmail.com',
+    to: newOrder.customerID,
+    subject: 'Order Confirmation',
+    text: `Your Order number is ${newOrder.orderID}\n -> Order Placed on: ${newOrder.dateOfOrder}\n ->  Order sub-total: ${newOrder.orderTotal - newOrder.shippingCharges}\n -> Shipping Charges: ${newOrder.shippingCharges}\n -> Order Total: ${newOrder.orderTotal}`
+  };
+  
+
+  const info= await transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.log(error);
+      
+    } else {
+      console.log('Email sent: ' + info.response);
+      
+    }
+    
+  });
+  
+  const mailOptionsRider = {
+    from: 'ruralmed123@gmail.com',
+    to: newOrder.riderId,
+    subject: 'Order Recieved',
+    text: `Your have been assigned an Order number is ${newOrder.orderID}\n -> Order Assigned on: ${newOrder.dateOfOrder}\n -> Your fee: ${newOrder.shippingCharges}\n -> Order Total to be picked from Customer: ${newOrder.orderTotal}`
+  };
+  
+  const infoRider= await transporter.sendMail(mailOptionsRider, (error, info) => {
+    if (error) {
+      console.log(error);
+      
+    } else {
+      console.log('Email sent: ' + infoRider.response);
+      
+    }
+    
+  })
+  const mailOptionsOwner = {
+    from: 'ruralmed123@gmail.com',
+    to: newOrder.ownerId,
+    subject: 'Order Recieved',
+    text: `Your have been received an Order number is ${newOrder.orderID}\n -> Order Received on: ${newOrder.dateOfOrder}\n  -> Your Amount to be collected: ${newOrder.orderTotal-newOrder.shippingCharges}`
+  };
+  
+  const infoOwner= await transporter.sendMail(mailOptionsOwner, (error, info) => {
+    if (error) {
+      console.log(error);
+      res.status(500).json({ message: 'Failed to send Email' });
+
+    } else {
+      console.log('Email sent: ' + infoOwner.response);
+      res.status(200).json({ message: 'Order Placed email sent successfully', otp,success:true});
+      
+    }
+    
+  })
+  
+
+};
 module.exports = {
   signupController,
   loginController,
@@ -567,5 +631,6 @@ module.exports = {
   sendOTP,
   verifyOTP,updateUserFieldController,
   updateUserAddress,
-  getOrderCounts
+  getOrderCounts,
+  sendOrderEmail
 };
