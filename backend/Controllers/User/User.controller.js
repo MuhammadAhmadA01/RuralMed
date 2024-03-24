@@ -549,6 +549,54 @@ const getOrderCounts = async (req, res) => {
     return res.status(500).json({ message: 'Internal server error' });
   }
 };
+const sendMeetingEmail =  async (req, res) => {
+
+  const { newMeeting } = req.body;
+  console.log(newMeeting)
+  
+  const mailOptions = {
+    from: 'ruralmed123@gmail.com',
+    to: newMeeting.customerId,
+    subject: 'Meeting Confirmation',
+    text: `Your Meeting number is ${newMeeting.meetingID}\n -> Meeting Scheduled for: ${newMeeting.scheduledDate}\n ->  Meeting charges: ${newMeeting.meetingFee}\n -> Please be there in the clinic on time: ${formatTime(newMeeting.startTime)}\n\n\n Regards\nTeam Ruralmed`
+  };
+  
+
+  const info= await transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.log(error);
+      
+    } else {
+      console.log('Email sent: ' + info.response);
+      
+    }
+    
+  });
+  
+  const mailOptionsDvm = {
+    from: 'ruralmed123@gmail.com',
+    to: newMeeting.dvmId,
+    subject: 'Meeting Appointment',
+    text: `Your have been booked for a meeting of which Meeting number is ${newMeeting.meetingID}\n -> Appointment Date is: ${newMeeting.scheduledDate}\n -> Your fee: ${newMeeting.meetingFee}\n -> Meeting Duration: 20 mins\n -> Meeting will start at: ${formatTime(newMeeting.startTime)}\n\n\n Regards\nTeam Ruralmed`
+  };
+  
+  const infoDvm= await transporter.sendMail(mailOptionsDvm, (error, info) => {
+    if (error) {
+      console.log(error);
+   res.status(500).json({ message: 'Failed to send Email' });
+
+      
+    } else {
+      console.log('Email sent: ' + infoDvm.response);
+  res.status(200).json({ message: 'Order Placed email sent successfully', otp,success:true});
+
+      
+    }
+    
+  
+
+  });
+}
 
 // Controller method to send OTP
 const sendOrderEmail =  async (req, res) => {
@@ -632,5 +680,6 @@ module.exports = {
   verifyOTP,updateUserFieldController,
   updateUserAddress,
   getOrderCounts,
-  sendOrderEmail
+  sendOrderEmail,
+  sendMeetingEmail
 };
