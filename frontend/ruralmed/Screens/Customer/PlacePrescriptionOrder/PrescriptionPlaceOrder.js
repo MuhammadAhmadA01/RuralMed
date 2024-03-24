@@ -20,6 +20,7 @@ const PrescriptionPlaceOrderScreen = ({ navigation, route }) => {
   const [riderDistances, setRiderDistances] = useState({});
   const [estimatedDeliveryTime, setEstimatedDeliveryTime] = useState("");
 
+  const prescriptionLink = route.params.prescriptionLink;
   const [assignedRider, setAssignedRider] = useState({});
   const [customerEmail, setCustomerEmail] = useState("");
   const [riderDetails, setRiderDetails] = useState({});
@@ -74,12 +75,10 @@ const PrescriptionPlaceOrderScreen = ({ navigation, route }) => {
         );
 
         setAssignedRider(minDistanceRider);
-        console.log(minDistanceRider.email);
         const response = await fetch(
           `http://${IP_ADDRESS}:5000/get-user-profile/${minDistanceRider.email}`
         );
         const userData = await response.json();
-        console.log(userData);
         setRiderDetails(userData);
       }
     } catch (error) {
@@ -90,7 +89,6 @@ const PrescriptionPlaceOrderScreen = ({ navigation, route }) => {
   };
 
   const placeOrder = async () => {
-    console.log(contactNumber);
     const customerEmailResponse = await fetch(
       `http://${IP_ADDRESS}:5000/get-email`,
       {
@@ -102,15 +100,12 @@ const PrescriptionPlaceOrderScreen = ({ navigation, route }) => {
       }
     );
     const customerEmailData = await customerEmailResponse.json();
-    console.log(customerEmailData.email);
     setCustomerEmail(customerEmailData.email);
 
     // Your prescription image link from route.params
-    const prescriptionLink = route.params.prescriptionLink;
     console.log(prescriptionLink);
     // Create an array with prescription link as an object
     const orderDetails = [{ prescriptionLink }];
-    console.log(switchOn);
     const orderData = {
       customerID: customerEmailData.email,
       riderId: assignedRider.email,
@@ -122,7 +117,6 @@ const PrescriptionPlaceOrderScreen = ({ navigation, route }) => {
       storeId: store.storeID,
       isIdentityHidden: switchOn,
     };
-    console.log(orderData);
     try {
       const response = await fetch(`http://${IP_ADDRESS}:5000/place-order`, {
         method: "POST",
@@ -145,7 +139,28 @@ const PrescriptionPlaceOrderScreen = ({ navigation, route }) => {
           customerId: customerEmailData.email,
           dateOfNotiifcation: new Date().toLocaleString(),
         };
-
+        fetch(`http://${IP_ADDRESS}:5000/send-email-order`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ newOrder })
+        })
+        .then(response => {
+          if (response.ok) {
+            // Handle success response
+            console.log('Order email sent successfully');
+          } else {
+            // Handle error response
+            console.error('Failed to send order email');
+          }
+        })
+        .catch(error => {
+          // Handle network errors or exceptions
+          console.error('Error sending order email:', error);
+        });
+        
+        
         const notificationResponse = await fetch(
           `http://${IP_ADDRESS}:5000/notifications`,
           {
@@ -190,7 +205,7 @@ const PrescriptionPlaceOrderScreen = ({ navigation, route }) => {
         <Image
           style={styles.prescriptionImage}
           source={{
-            uri: "https://res.cloudinary.com/dvb3iz47x/image/upload/v1702076961/cus11%40gmail.com_prescription.jpg",
+            uri: `${prescriptionLink}`,
           }}
         />
       </View>

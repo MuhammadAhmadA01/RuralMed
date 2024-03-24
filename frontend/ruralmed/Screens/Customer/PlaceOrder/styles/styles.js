@@ -8,6 +8,34 @@ const styles = StyleSheet.create({
       fontWeight: "700",
       marginTop: "2%",
     },
+    paymentText:{
+      fontSize:20,
+      color:'#25d366',
+      marginLeft:15,
+      fontWeight:'500'
+    },
+    imageContainer: {
+      alignItems: 'center',
+      marginTop: 10,
+    },
+    image: {
+      width: 200,
+      height: 200,
+      resizeMode: 'contain',
+    },
+    uploadText:{
+      fontSize:20,
+      color:'#25d366',
+      marginLeft:40,
+      fontWeight:'800',
+      textDecorationLine:'underline'
+    },
+    
+    radioButtonContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 10,
+    },
     cartItemContainer: {
       flexDirection: "column",
       justifyContent: "space-between",
@@ -61,5 +89,27 @@ const styles = StyleSheet.create({
       marginTop: 10,
       fontSize: 16,
     },
+    verifyPaymentButton:{
+      width: "50%",
+      padding: 12,
+      borderRadius: 50,
+      alignItems: "center",
+      justifyContent: "center",
+      margin: 16,
+      backgroundColor: "#25d366",
+      marginLeft:96
+    },
+    paymentVerifiedContainer: {
+      backgroundColor: 'white', // Example background color
+      padding: 10,
+      marginTop: 20,
+      borderRadius: 5,
+    },
+    paymentVerifiedText: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: '#25d366', // Example text color
+    },
+
   });
 export default styles  
