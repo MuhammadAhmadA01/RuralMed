@@ -598,6 +598,30 @@ const addRating = async (req, res) => {
   }
 };
 
+const addMeeting = async (req, res) => {
+  try {
+    // Extract data from the request body
+    const { scheduledDate, startTime,endTime, customerId, dvmId, meetingFee } = req.body;
+
+    // Parse time range into start and end times
+
+    // Create the meeting
+    const meeting = await Meeting.create({
+      meetingFee, // Assuming a fixed meeting fee
+      scheduledDate,
+      startTime,
+      endTime,
+      customerId,
+      dvmId,
+      status: 'Scheduled', // Default status
+    });
+
+    res.status(201).json({ message: 'Meeting added successfully', meeting });
+  } catch (error) {
+    console.error('Error adding meeting:', error);
+    res.status(500).json({ error: 'Failed to add meeting' });
+  }
+};
 module.exports = {
   updateQuantity,
   removeFromCart,
@@ -612,5 +636,6 @@ module.exports = {
   calculateRiderDistance,
   addToCart,
   deleteCartItem,
-  addRating
+  addRating,
+  addMeeting
 };
