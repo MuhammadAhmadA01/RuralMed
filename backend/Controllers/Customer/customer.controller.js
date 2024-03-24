@@ -622,6 +622,43 @@ const addMeeting = async (req, res) => {
     res.status(500).json({ error: 'Failed to add meeting' });
   }
 };
+const getAllMeetingsByCustomerId = async (req, res) => {
+  try {
+    console.log(req.params)
+
+    const { id } = req.params;
+    // Find all meetings where customerId matches
+    const meetings = await Meeting.findAll({where:{ customerId: id }});
+
+    // Array to store the combined data of meetings, users, and DVMS
+    const combinedData = [];
+
+    // Loop through each meeting
+    for (const meeting of meetings) {
+      // Find the user corresponding to the meeting's dvmId
+      const user = await USER.findOne({ where:{ email: meeting.dvmId} });
+      console.log(user)
+      // Find the DVM based on the user's email
+      const dvm = await DVM.findOne({ where:{email: user.email }});
+
+      // Combine meeting, user, and DVM data into an object
+      const combinedObject = {
+        Meeting: meeting,
+        User: user,
+        Dvm: dvm,
+      };
+
+      // Push the combined object to the array
+      combinedData.push(combinedObject);
+    }
+
+    // Return the combined data in the response
+    res.json(combinedData);
+  } catch (error) {
+    console.error('Error fetching meetings:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
 module.exports = {
   updateQuantity,
   removeFromCart,
@@ -637,5 +674,6 @@ module.exports = {
   addToCart,
   deleteCartItem,
   addRating,
-  addMeeting
+  addMeeting,
+  getAllMeetingsByCustomerId
 };
