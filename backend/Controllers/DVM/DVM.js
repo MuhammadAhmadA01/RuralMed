@@ -1,14 +1,23 @@
-const DVM = require('../../Models/DVM/DVM'); // Assuming the DVM model is defined in a separate file
-const User=require('../../Models/User/User')
+const DVM = require("../../Models/DVM/DVM"); // Assuming the DVM model is defined in a separate file
+const User = require("../../Models/User/User");
 const { sequelize, DataTypes } = require("../../config/config");
 const { Sequelize, literal, fn, col, Op } = require("sequelize");
 const Meeting_Notification = require("../../Models/Notifications/Meeting_Notifications");
-const Meeting=require('../../Models/Meeting/Meeting')
+const Meeting = require("../../Models/Meeting/Meeting");
 // Controller function to add data to the DVM table
 const addDVM = async (req, res) => {
   try {
     // Extract data from the request body
-    const { meetingFee, availability, speciality,email,startTime,endTime,offDay, clinicLocation } = req.body;
+    const {
+      meetingFee,
+      availability,
+      speciality,
+      email,
+      startTime,
+      endTime,
+      offDay,
+      clinicLocation,
+    } = req.body;
 
     // Add data to the DVM table using Sequelize's create method
     const dvm = await DVM.create({
@@ -19,45 +28,46 @@ const addDVM = async (req, res) => {
       startTime,
       endTime,
       offDay,
-      clinicLocation
+      clinicLocation,
     });
 
     // Send a success response
-    res.status(201).json({ message: 'DVM data added successfully', dvm });
+    res.status(201).json({ message: "DVM data added successfully", dvm });
   } catch (error) {
     // Handle errors
-    console.error('Error adding DVM data:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error adding DVM data:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
 const getAllDVMs = async (req, res) => {
   try {
     // Fetch all users where role is "DVM"
-    const allUsers = await User.findAll({ where: { role: 'Dvm' } });
+    const allUsers = await User.findAll({ where: { role: "Dvm" } });
 
     // Fetch all DVM records from the database
     const allDVMs = await DVM.findAll();
     // Combine DVMs with additional user information
     const combinedDVMs = allDVMs.map((dvm) => {
       // Find corresponding user for the DVM by matching email
-      const correspondingUser = allUsers.find((user) => user.email === dvm.email);
+      const correspondingUser = allUsers.find(
+        (user) => user.email === dvm.email
+      );
       // Add additional fields from the user to the DVM object
       return {
         ...dvm.toJSON(),
-       picture: correspondingUser.picture,
+        picture: correspondingUser.picture,
         cityNearBy: correspondingUser.cityNearBy,
-        name: `${correspondingUser.firstName} ${correspondingUser.lastName}`
+        name: `${correspondingUser.firstName} ${correspondingUser.lastName}`,
       };
-
     });
-    console.log(combinedDVMs)
+    console.log(combinedDVMs);
     // Send the combined DVMs as a response
     res.json(combinedDVMs);
   } catch (error) {
     // If an error occurs, send an error response
-    console.error('Error fetching all DVMs:', error);
-    res.status(500).json({ error: 'An error occurred while fetching DVMs' });
+    console.error("Error fetching all DVMs:", error);
+    res.status(500).json({ error: "An error occurred while fetching DVMs" });
   }
 };
 
@@ -214,6 +224,46 @@ const getNotificationsMeetings = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+const getAllMeetingsByDvmId = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find all meetings where dvmId matches
+    const meetings = await Meeting.findAll({ where: { dvmId: id } });
+
+    // Array to store the combined data of meetings, users, and DVMS
+    const combinedData = [];
+
+    // Loop through each meeting
+    for (const meeting of meetings) {
+      // Find the user corresponding to the meeting's customerId
+      const user = await User.findOne({ where: { email: meeting.customerId } });
+
+      // Combine meeting, user, and DVM data into an object
+      const combinedObject = {
+        Meeting: meeting,
+        User: user,
+      };
+
+      // Push the combined object to the array
+      combinedData.push(combinedObject);
+    }
+
+    // Return the combined data in the response
+    res.json(combinedData);
+  } catch (error) {
+    console.error("Error fetching meetings:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
 
 // Export the controller function
-module.exports = { addDVM, getAllDVMs, getDvmMonthlyStats, updateNotifications, createNotificationMeeting,getNotificationsMeetings};
+module.exports = {
+  addDVM,
+  getAllDVMs,
+  getDvmMonthlyStats,
+  updateNotifications,
+  createNotificationMeeting,
+  getNotificationsMeetings,
+  getAllMeetingsByDvmId
+};
