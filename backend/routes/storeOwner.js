@@ -34,8 +34,15 @@ router.post(
 );
 router.get("/owner-monthly-stats/:email", ownerMethods.getownerMonthlyStats);
 router.get("/get-owner-orders/:email", ownerMethods.viewOrders);
-
+router.get("/update-order/:orderID/:newStatus", ownerMethods.updateOrderStatus);
 router.get("/products/:storeId", storeMethods.getProducts);
 router.get("/get-all-stores/:email", ownerMethods.getStoresByEmail);
 router.get("/get-a-store/:storeID", storeMethods.getStoreById);
+router.delete("/delete-product/:productId", storeMethods.deleteProduct);
+router.post("/update-product/", storeMethods.updateProduct);
+router.post("/update-product-status/", storeMethods.updateEnableDisableProduct);
+
+
+
+
 module.exports = router;
