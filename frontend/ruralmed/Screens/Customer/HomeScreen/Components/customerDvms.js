@@ -21,17 +21,18 @@ const CustomerDvms = ({navigation}) => {
       try {
         const response = await fetch(`http://${IP_ADDRESS}:5000/get-dvms`);
         const data = await response.json();
-       // console.log(data)
+        const availableDvms = data.filter(item => item.availability);
+
         const uniqueCities = Array.from(
-          new Set(data.map((dvm) => dvm.cityNearBy))
+          new Set(availableDvms.map((dvm) => dvm.cityNearBy))
         );
         const uniqueSpecializations = Array.from(
-          new Set(data.map((dvm) => dvm.speciality))
+          new Set(availableDvms.map((dvm) => dvm.speciality))
         );
 
         setCities(["All Cities", ...uniqueCities]);
         setSpecializations(["All Specializations", ...uniqueSpecializations]);
-        setCardsData(data);
+        setCardsData(availableDvms);
         setIsLoading(false);
       } catch (error) {
         console.error("Error fetching DVMs:", error);

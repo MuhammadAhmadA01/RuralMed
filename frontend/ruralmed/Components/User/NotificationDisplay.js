@@ -15,6 +15,7 @@ const NotificationsDisplay = ({
   isVisible,
   role,
   navigation,
+  email
 }) => {
   const groupedNotifications = groupByDate(notifications);
 
@@ -43,16 +44,23 @@ const NotificationsDisplay = ({
             <FlatList
               style={styles.flatList}
               data={groupedNotifications}
-              keyExtractor={(item) => item.notifications[0].notificatonID}
+              keyExtractor={(item, index) => `group-${index}`}
               renderItem={({ item }) => (
                 <TouchableOpacity
-                  onPress={() => handleNotificationPress(item, role)}
+                  onPress={() =>
+                    handleNotificationPress(
+                      item,
+                      role,
+                      setSelectedNotification,
+                      navigation
+                    )}
                 >
                   <NotificationGroup
                     role={role}
                     date={item.date}
                     notifications={item.notifications}
                     navigation={navigation}
+                    email={email}
                   />
                 </TouchableOpacity>
               )}
@@ -68,9 +76,13 @@ const handleNotificationPress = async (
   item,
   role,
   setSelectedNotification,
-  navigation
+  navigation,
+  email
 ) => {
   try {
+
+    if(role!=='Dvm')
+    {
     // Make a fetch call to update notification status
     const response = await fetch(
       `http://${IP_ADDRESS}:5000/notifications/${item.notificatonID}/${role}`,
@@ -89,6 +101,24 @@ const handleNotificationPress = async (
     } else {
       console.error("Failed to update notification status");
     }
+  }
+  else
+  {
+    const response = await fetch(
+      `http://${IP_ADDRESS}:5000/update-notifications-meeting/${email}/${role}`,
+      {
+        method: "PUT", // Assuming you are using the PUT method
+      }
+    );
+
+    if (response.ok) {
+      // Handle success, e.g., refresh notifications or navigate to a new screen
+      setSelectedNotification(item);
+      console.log('aim')
+    } else {
+      console.error("Failed to update notification status");
+    }
+  }
   } catch (error) {
     console.error("Error updating notification status:", error);
   }
@@ -152,7 +182,12 @@ const NotificationGroup = ({ date, notifications, role, navigation }) => {
             >
               <Text
                 style={{ color: "black" }}
-              >{`You got an order. Order # is ${item.orderID}`}</Text>
+              >{item.orderID && `You got an order. Order # is ${item.orderID}`}</Text>
+              <Text
+                style={{ color: "black" }}
+              >{item.meetingID && `You got a meeting. Meeting # is ${item.meetingID}`}</Text>
+              
+              
               <Text
                 style={[
                   styles.notificationTime,

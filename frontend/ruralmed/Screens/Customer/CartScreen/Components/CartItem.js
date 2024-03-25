@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet,Alert } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { removeFromCart, updateCartItemQuantity } from '../../../../Components/Cart/CartSlice';
 import IP_ADDRESS from '../../../../config/config';
+import { FontAwesome5 } from '@expo/vector-icons';
 const CartItem = ({ item, localQuantities, phoneNum }) => {
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart.cartItems);
@@ -89,8 +90,9 @@ const CartItem = ({ item, localQuantities, phoneNum }) => {
         </TouchableOpacity>
       </View>
       <TouchableOpacity onPress={() => handleRemoveItem(item.productID)}>
-        <Text style={styles.removeButton}>Remove</Text>
-      </TouchableOpacity>
+      
+    <FontAwesome5 name="trash-alt" size={24} color="red" />
+        </TouchableOpacity>
     </View>
   );
 };

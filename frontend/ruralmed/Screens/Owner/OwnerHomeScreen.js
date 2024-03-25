@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from "react";
 import {
   View,
-  ScrollView,
-  StatusBar,
   ActivityIndicator,
   Text,
 } from "react-native";
-import { Appbar, Card, Title, Paragraph } from "react-native-paper";
+import { Title } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import AppHeader from "../../Components/OwnerAppHeader";
+import AppHeader from "../../Components/Owner/OwnerAppHeader";
 import IP_ADDRESS from "../../config/config";
-
+import CardsView from "../../Components/User/CardsView";
 const OwnerHomeScreen = ({ navigation }) => {
   const [notificationCount, setNotificationCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -83,105 +81,18 @@ const OwnerHomeScreen = ({ navigation }) => {
   }
   return (
     <View style={{ flex: 1 }}>
-      <AppHeader navigation={navigation}></AppHeader>
+      <AppHeader isHome={true} navigation={navigation}></AppHeader>
 
       {/* Monthly Dashboard Heading */}
       <View style={{ padding: 16, alignItems: "center" }}>
         <Title style={{ color: "black", fontSize: 24, fontWeight: "bold" }}>
           Your Monthly Dashboard
         </Title>
+        
       </View>
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
-        <Card style={{ marginBottom: 16, flex: 1, height: 130 }}>
-          <Card.Content>
-            <Title
-              style={{
-                textAlign: "center",
-                fontWeight: "bold",
-                fontSize: 20,
-                color: "black",
-              }}
-            >
-              Current Month Earning
-            </Title>
-            <Paragraph style={{ textAlign: "center", fontSize: 20 }}>
-              {currentMonthEarning}
-            </Paragraph>
-          </Card.Content>
-        </Card>
+      <CardsView role='Owner' inProgressOrders={inProgressOrders} prevMonthEarning={prevMonthEarning} prevMonthOrders={prevMonthOrders} currentMonthEarning={currentMonthEarning} currentMonthOrders={currentMonthOrders} >
+        </CardsView>      
 
-        <Card style={{ marginBottom: 16, flex: 1, height: 130 }}>
-          <Card.Content>
-            <Title
-              style={{
-                textAlign: "center",
-                fontWeight: "bold",
-                fontSize: 20,
-                color: "black",
-              }}
-            >
-              Current Month Orders
-            </Title>
-            <Paragraph style={{ textAlign: "center", fontSize: 20 }}>
-              {currentMonthOrders}
-            </Paragraph>
-          </Card.Content>
-        </Card>
-
-        <Card style={{ marginBottom: 16, flex: 1, height: 130 }}>
-          <Card.Content>
-            <Title
-              style={{
-                textAlign: "center",
-                fontWeight: "bold",
-                fontSize: 20,
-                color: "black",
-              }}
-            >
-              In Progress Orders
-            </Title>
-            <Paragraph style={{ textAlign: "center", fontSize: 20 }}>
-              {inProgressOrders}
-            </Paragraph>
-          </Card.Content>
-        </Card>
-
-        <Card style={{ marginBottom: 16, flex: 1, height: 130 }}>
-          <Card.Content>
-            <Title
-              style={{
-                textAlign: "center",
-                fontWeight: "bold",
-                fontSize: 20,
-                color: "black",
-              }}
-            >
-              Prev Month Earning
-            </Title>
-            <Paragraph style={{ textAlign: "center", fontSize: 20 }}>
-              {prevMonthEarning}
-            </Paragraph>
-          </Card.Content>
-        </Card>
-
-        <Card style={{ marginBottom: 16, flex: 1, height: 130 }}>
-          <Card.Content>
-            <Title
-              style={{
-                textAlign: "center",
-                fontWeight: "bold",
-                fontSize: 20,
-                color: "black",
-              }}
-            >
-              Prev Month Orders
-            </Title>
-            <Paragraph style={{ textAlign: "center", fontSize: 20 }}>
-              {prevMonthOrders}
-            </Paragraph>
-          </Card.Content>
-        </Card>
-      </ScrollView>
     </View>
   );
 };

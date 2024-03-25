@@ -12,6 +12,11 @@ const Product = sequelize.define("products", {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
+  has_enabled: {
+    type: DataTypes.BOOLEAN,
+    allowNull: true,
+    defaultValue:true
+  },
   name: {
     type: DataTypes.STRING,
     allowNull: false,

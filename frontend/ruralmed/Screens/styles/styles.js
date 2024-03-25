@@ -39,7 +39,7 @@ export const styles = StyleSheet.create({
     color: "#333",
   },
   title: {
-    fontSize: windowWidth * 0.09, // Use a percentage of the window width
+    fontSize: windowWidth * 0.08, // Use a percentage of the window width
     marginBottom: "5%", // Use percentage for margin
     textAlign: "center",
     //marginTop: "17%" // Use percentage for margin
@@ -118,7 +118,7 @@ export const styles = StyleSheet.create({
   },
   roleButton: {
     backgroundColor: "transparent",
-    padding: "4%", // Use percentage for padding
+    padding: "2%", // Use percentage for padding
     borderRadius: 50,
     borderWidth: 1,
     borderColor: "#25d366",

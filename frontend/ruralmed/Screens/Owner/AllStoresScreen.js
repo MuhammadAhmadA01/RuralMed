@@ -10,7 +10,7 @@ import {
 import { Card, Title, Paragraph, FAB } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
 import IP_ADDRESS from "../../config/config";
-import AppHeader from "../../Components/OwnerAppHeader";
+import AppHeader from "../../Components/Owner/OwnerAppHeader";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const AllStoresScreen = ({ navigation }) => {
@@ -64,7 +64,7 @@ const AllStoresScreen = ({ navigation }) => {
 
   const handleCardPress = (store) => {
     // Navigate to OwnerStoreScreen with store details
-    navigation.navigate("OwnerStoreScreen", { store });
+    navigation.navigate("AllProductsOfStoreScreen", { store });
   };
 
   const renderStores = () => {
@@ -102,7 +102,15 @@ const AllStoresScreen = ({ navigation }) => {
       >
         <Card style={styles.card}>
           <Card.Cover
-            source={{ uri: "https://via.placeholder.com/150" }}
+            source={{ uri:
+        
+              store.storeType === "Agriculture"
+                ? "https://i.ibb.co/VSbD0cf/pexels-flambo-1112080-1.jpg"
+                : store.storeType === "Pharmacy"
+                ? "https://i.ibb.co/59nTNhP/laurynas-me-1-TL8-Ao-EDj-c-unsplash.jpg"
+                : "https://i.ibb.co/J5bFMhq/istockphoto-1167064450-612x612.jpg",
+         
+            }}
             style={styles.cardImage}
           />
           <Card.Content>
@@ -203,6 +211,7 @@ const styles = StyleSheet.create({
     margin: 16,
     right: 0,
     bottom: 0,
+    borderRadius:50,
     backgroundColor: "#25d366",
   },
 });

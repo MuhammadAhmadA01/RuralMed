@@ -67,7 +67,8 @@ const AllOrdersScreen = ({ navigation,route}) => {
   };
 
   const handleCardPress = (orderID) => {
-    console.log("Clicked on order:", orderID);
+    navigation.replace("NotificationOrderDetails",{role:role==="rider"?"Rider":"Owner",orderID:orderID})
+    
   };
   const parseOrderDate = (dateString) => {
     const orderDate = new Date(dateString);
@@ -225,7 +226,7 @@ const styles = StyleSheet.create({
   },
   card: {
     marginVertical: 8,
-    borderRadius: 10,
+    borderRadius: 40,
   },
   bottomButton: {
     padding: 1,

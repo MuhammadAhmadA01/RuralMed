@@ -206,9 +206,11 @@ const CustomerHomeScreen = ({ navigation }) => {
       if (!response.ok)
         throw new Error(`Error fetching products for store ${store.storeID}`);
       const products = await response.json();
+      const enabledProducts = products.filter(product => product.has_enabled);
+
       navigation.navigate("StoreDetails", {
         store,
-        products,
+        products:enabledProducts,
         contactNum: contactNumberCustomer,
       });
     } catch (error) {

@@ -247,6 +247,8 @@ const ProfileScreen = ({ navigation, route }) => {
                 />
                 <DetailItem
                   label="Contact Number"
+                  setEditingField={setEditingField}
+                  
                   value={user.contactNumber}
                   editingField={editingField === "contactNumber"}
                   handleEdit={() => handleEdit("contactNumber")}
@@ -256,6 +258,8 @@ const ProfileScreen = ({ navigation, route }) => {
                   }
                 />
                 <DetailItem
+                setEditingField={setEditingField}
+                  
                   label="City"
                   value={user.cityNearBy}
                   editingField={editingField === "cityNearBy"}

@@ -238,10 +238,10 @@ const getRiderMonthlyStats = (req, res) => {
 };
 
 module.exports = {
-  createRider,
-  viewProfile,
-  viewOrders,
-  getRiderMonthlyStats,
-  updateAvailabilityStatus,
-  getRiderProfile,
+  createRider, // rider ki additional information
+  viewProfile, // rider ki profile 
+  viewOrders, // rider apny order view kr raha ho ga
+  getRiderMonthlyStats, // rider dashboard
+  updateAvailabilityStatus, // rider apni availability ko show kr raha ho ga
+  getRiderProfile, // getting rider profile
 };

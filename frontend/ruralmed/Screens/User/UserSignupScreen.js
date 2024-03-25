@@ -27,6 +27,10 @@ const Signup = ({ navigation }) => {
   const [errorMessage, setErrorMessage] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
+  const [contactNumberVerified, setContactNumberVerified] = useState(false);
+  const [otpConfirmation, setOtpConfirmation] = useState(null); // State to hold OTP confirmation object
+
+ 
   const [formData, setFormData] = useState(null);
   const [emailVerified, setEmailVerified] = useState(false); // New state to track email verification
   const [firstNameError, setFirstNameError] = useState(null);
@@ -36,6 +40,7 @@ const Signup = ({ navigation }) => {
   const [contactNumberError, setContactNumberError] = useState(null);
   const [cityNearByError, setCityNearByError] = useState(null);
   const [roleError, setRoleError] = useState(null);
+  const [isPhoneVerification,setIsPhoneVerification]=useState(false)
   const handleLocationSelection = (coordinates) => {
     setSelectedLocation(coordinates);
   };
@@ -129,7 +134,7 @@ const Signup = ({ navigation }) => {
   };
   const handleSignup = () => {
     if (!emailVerified) {
-      Alert.alert("Verify your email first");
+      Alert.alert("Email Verification Needed","Verify your email first");
       return;
     }
     setFirstNameError(null);
@@ -287,7 +292,7 @@ const Signup = ({ navigation }) => {
               setPasswordError(!password ? "Password is required" : null)
             }
           />
-          {contactNumberError && (
+           {contactNumberError && (
             <Text style={styles.error}>{contactNumberError}</Text>
           )}
           <TextInput
@@ -302,6 +307,7 @@ const Signup = ({ navigation }) => {
               )
             }
           />
+         
           {cityNearByError && (
             <Text style={styles.error}>{cityNearByError}</Text>
           )}
@@ -428,7 +434,7 @@ const Signup = ({ navigation }) => {
           </TouchableOpacity>
           <OTPModal
             visible={showOtpModal}
-            onSubmit={handleVerifyOTP}
+            onSubmit={isPhoneVerification?handleVerifyPhoneOTP:handleVerifyOTP}
             onClose={closeOTPModal}
             generatedOtp={otp}
           />

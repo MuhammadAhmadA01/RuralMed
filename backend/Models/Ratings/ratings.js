@@ -13,11 +13,11 @@ const Ratings = sequelize.define("ratings", {
   },
   rating_for_rider: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,
   },
   rating_for_Owner: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,
   },
   
   review: {

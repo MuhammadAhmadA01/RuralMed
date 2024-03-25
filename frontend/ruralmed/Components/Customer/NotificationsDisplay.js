@@ -32,15 +32,17 @@ const NotificationGroup = ({ date, notifications, onPress }) => (
                 color: item.statusOfCustomer === "Unread" ? "black" : "black",
               }}
             >
-              {`You placed an order. Order # is ${item.orderID}`}
+              {item.orderID &&`You placed an order. Order # is ${item.orderID}`}
+              {item.meetingID &&`Your Meeting is Scheduled. Meeting # is ${item.meetingID}`}
+
             </Text>
             <Text
               style={[
                 styles.notificationTime,
-                { color: item.statusOfRider === "Unread" ? "red" : "green" },
+                { color: item.statusOfCustomer === "Unread" ? "red" : "green" },
               ]}
             >
-              {item.statusOfRider}
+              {item.statusOfCustomer}
             </Text>
             <Text style={styles.notificationTime}>
               {parseOrderDate(item.dateOfNotiifcation).formattedTime}
@@ -66,7 +68,7 @@ const parseOrderDate = (dateString) => {
     hour: "2-digit",
     minute: "2-digit",
     hour12: true,
-  });
+  },{ timeZone: "Asia/Karachi" });
 
   return {
     date,
@@ -74,10 +76,13 @@ const parseOrderDate = (dateString) => {
     formattedTime,
   };
 };
+// Inside the NotificationsDisplay component
 
 const NotificationsDisplay = ({ notifications, onClose }) => {
-  const groupedNotifications = groupByDate(notifications);
+  // Function to group notifications by date (similar to the existing one)
 
+  const groupedNotifications = groupByDate(notifications);
+  console.log(notifications)
   return (
     <Modal
       animationType="fade"
@@ -92,34 +97,37 @@ const NotificationsDisplay = ({ notifications, onClose }) => {
           onPress={onClose}
         />
 
-        <View style={styles.contentContainer}>
-          {groupedNotifications.length === 0 ? (
-            <Text style={styles.noNotificationsText}>
-              No notifications yet.
-            </Text>
-          ) : (
-            <>
-              <Title style={styles.modalTitle}>My Notifications</Title>
+        {groupedNotifications && (
+          <View style={styles.contentContainer}>
+            {groupedNotifications.length === 0 ? (
+              <Text style={styles.noNotificationsText}>
+                No notifications yet.
+              </Text>
+            ) : (
+              <>
+                <Title style={styles.modalTitle}>My Notifications</Title>
 
-              <FlatList
-                data={groupedNotifications}
-                keyExtractor={(item) => item.notifications}
-                renderItem={({ item }) => (
-                  <NotificationGroup
-                  key={item.notifications.map((el)=>el.notificationID)}
-                    date={item.date}
-                    notifications={item.notifications}
-                    onPress={() =>{}}
-                  />
-                )}
-              />
-            </>
-          )}
-        </View>
+                <FlatList
+                  data={groupedNotifications}
+                  keyExtractor={(item) => item.notifications}
+                  renderItem={({ item }) => (
+                    <NotificationGroup
+                      key={item.notifications.map((el)=>el.notificationID)}
+                      date={item.date}
+                      notifications={item.notifications}
+                      onPress={() =>{}}
+                    />
+                  )}
+                />
+              </>
+            )}
+          </View>
+        )}
       </View>
     </Modal>
   );
 };
+
 const groupByDate = (notifications) => {
   const grouped = notifications.reduce((acc, notification) => {
     const date = notification.dateOfNotiifcation.split("T")[0];
@@ -137,7 +145,7 @@ const groupByDate = (notifications) => {
         new Date(a.dateOfNotiifcation).getTime()
     );
   });
-
+  console.log(grouped)
   const uniqueDates = Object.keys(grouped).sort(
     (a, b) => new Date(b) - new Date(a)
   );

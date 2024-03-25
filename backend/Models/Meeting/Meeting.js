@@ -37,7 +37,13 @@ dvmId:{
 status:{
   type:DataTypes.STRING,
   allowNull:false
-}
+},
+
+hasReviewed: {
+  type: DataTypes.BOOLEAN, 
+  allowNull: true,
+  defaultValue: false, 
+},
 });
 
 sequelize.sync()
