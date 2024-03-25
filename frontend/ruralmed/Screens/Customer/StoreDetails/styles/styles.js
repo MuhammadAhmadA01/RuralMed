@@ -3,8 +3,8 @@ const styles = StyleSheet.create({
     productContainer: {
       flexDirection: "row",
       margin: 10,
-      padding: 10,
-      borderRadius: 10,
+      padding: 15,
+      borderRadius: 30,
       backgroundColor: "#fff",
       elevation: 3,
     },
@@ -26,22 +26,12 @@ const styles = StyleSheet.create({
       marginTop: 5,
     },
     addToCartButton: {
-      backgroundColor: "#25d366",
-      paddingTop: 14,
-      paddingBottom: 14,
-      paddingLeft: 30,
-      paddingRight: 30,
-
+      
 
       borderRadius: 50,
       position: "absolute",
-      bottom: 5,
-      right: 5,
-    },
-    addToCartText: {
-      color: "black",
-      fontWeight: "bold",
-      fontSize: 18,
+      bottom: 20,
+      right: 1,
     },
     viewCartButton: {
       width: "90%",
@@ -51,7 +41,7 @@ const styles = StyleSheet.create({
       justifyContent: "center",
       margin: 16,
       backgroundColor: "#25d366",
-      marginTop:75
+
     },
     viewCartButtonText: {
       borderRadius:20,
@@ -74,6 +64,21 @@ const styles = StyleSheet.create({
       fontWeight: "bold",
       fontSize: 12,
     },
+    badge:{
+      position: "absolute",
+      top: 2,
+      right: 2,
+      backgroundColor: "white",
+      color: "black",
+    
+    },
+    image:{
+      height: 200,
+      width: "100%",
+      borderBottomLeftRadius: 10,
+      borderBottomRightRadius: 10,
+   
+    }
   });
   
   export default styles

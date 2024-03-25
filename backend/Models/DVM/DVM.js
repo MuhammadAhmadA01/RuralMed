@@ -44,6 +44,13 @@ clinicLocation:{
     type: DataTypes.STRING,
     allowNull:false,
     unique:true
+  },
+  experience:{
+    type:DataTypes.INTEGER,
+    allowNull:false,
+    validate:{
+      max:25
+    }
   }
 
 });

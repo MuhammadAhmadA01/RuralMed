@@ -7,9 +7,11 @@ import {
   TouchableOpacity,
   Alert,
   Image,
+  StatusBar
 } from "react-native";
 import { styles } from "../styles/styles"; // Import your login screen styles here
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Appbar } from "react-native-paper";
 const LoginScreen = ({ navigation }) => {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
@@ -74,11 +76,7 @@ const LoginScreen = ({ navigation }) => {
           AsyncStorage.setItem("token", data.token);
           AsyncStorage.setItem("phone", phone);
           AsyncStorage.setItem("role", data.role);
-
-          // You might want to navigate to another screen upon successful login
-          // navigation.navigate('Home'); // Uncomment and replace 'Home' with your desired screen
         } else {
-          // Handle unsuccessful login
           Alert.alert("Login Failed", data.error || "Unknown error occurred.");
         }
       })
@@ -97,7 +95,13 @@ const LoginScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <>
+
+     <StatusBar backgroundColor="#25d366"></StatusBar>
+    <Appbar.Header style={{backgroundColor:'#25d366'}} >
+    <Text style={{fontSize:25,fontWeight:'600',marginLeft:135, color:"white"}}>RuralMed</Text>
+    </Appbar.Header>
+   <View style={styles.container}>
       <Image
         source={{ uri: "https://i.ibb.co/34w40Nc/your-logo.png" }}
         style={styles.logo}
@@ -130,6 +134,7 @@ const LoginScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
     </View>
+    </>
   );
 };
 

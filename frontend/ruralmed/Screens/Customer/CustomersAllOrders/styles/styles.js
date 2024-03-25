@@ -16,9 +16,9 @@ const styles = StyleSheet.create({
       flex: 1,
     },
     card: {
-      height:118,
+      height:125,
       marginVertical: 8,
-      borderRadius: 10,
+      borderRadius: 50,
     },
     reviewSubmittedText: {
       color: "#888", // or any other gray color
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
       right: 10,
       backgroundColor: "#25d366",
       padding: 10,
-      borderRadius: 5,
+      borderRadius: 50,
       alignItems: "center",
     },
     

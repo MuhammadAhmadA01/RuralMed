@@ -29,7 +29,7 @@ const signupValidationRules = [
     .notEmpty()
     .withMessage("City should not be empty"),
   body("role")
-    .isIn(["Customer", "Rider", "Owner", "DVM"])
+    .isIn(["Customer", "Rider", "Owner", "Dvm"])
     .notEmpty()
     .withMessage("Must define a role"),
 ];

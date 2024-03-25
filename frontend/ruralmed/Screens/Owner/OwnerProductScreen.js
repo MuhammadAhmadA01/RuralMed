@@ -16,10 +16,10 @@ import {
   Alert,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import AppHeader from "../../Components/OwnerAppHeader";
+import AppHeader from "../../Components/Owner/OwnerAppHeader";
 import IP_ADDRESS from "../../config/config";
 import DropDownSelect from "react-native-dropdown-select-list";
-import StorePicker from "../../Components/StorePicker";
+import StorePicker from "../../Components/Owner/StorePicker";
 
 // Define the AddProductScreen component
 const AddProductScreen = ({ navigation }) => {
@@ -211,7 +211,7 @@ const AddProductScreen = ({ navigation }) => {
       if (response.ok) {
         // Product added successfully
         Alert.alert("Product added successfully");
-        navigation.navigate("MyProducts");
+        navigation.navigate("HomeOwner");
       } else {
         // Handle error cases
         Alert.alert("Error adding product");
@@ -299,6 +299,7 @@ const AddProductScreen = ({ navigation }) => {
               label: store.storeName,
               value: store.storeID,
             }))}
+            navigation={navigation}
             selectedValue={selectedStore}
             onSelect={handleStoreChange}
             onClose={handleClosePicker}
@@ -334,12 +335,12 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   input: {
-    height: windowHeight * 0.05,
+    height: windowHeight * 0.06,
     borderColor: "#25d366",
     borderWidth: 1,
     marginBottom: "3%",
     paddingHorizontal: "3%",
-    borderRadius: 8,
+    borderRadius: 50,
   },
   errorInput: {
     borderColor: "red",
@@ -361,12 +362,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   addButton: {
-    backgroundColor: "#25d366",
-    borderRadius: 10,
-    paddingVertical: "2%", // Use percentage for padding
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: "2%",
+      padding: 14,
+      borderRadius: 50,
+      alignItems: "center",
+      justifyContent: "center",
+      margin: 16,
+      backgroundColor: "#25d366",
+     
   },
   buttonText: {
     color: "white",

@@ -272,11 +272,11 @@ const updateOrderStatus = (req, res) => {
   }
 };
 module.exports = {
-  createOwner,
-  addProduct,
-  viewProfile,
-  viewOrders,
-  getownerMonthlyStats,
-  getStoresByEmail,
-  updateOrderStatus
+  createOwner, // owner ki additional screen
+  addProduct, // product add krna apny store mein
+  viewProfile, // profile view krna
+  viewOrders, // orders view krna
+  getownerMonthlyStats,  // dashboard
+  getStoresByEmail, //email k through stores get krna
+  updateOrderStatus //order ka status update krna 
 };

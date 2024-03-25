@@ -52,7 +52,7 @@ const CardView = ({navigation,store,handleStoreCardPress,locationNames,index,ema
               }}
               onPress={() => {
                 console.log(emailUser);
-                navigation.replace("UploadPrescriptionScreen", {
+                navigation.navigate("UploadPrescriptionScreen", {
                   email: emailUser,
                   store,
                   contactNumberCustomer,

@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Linking,
+  StatusBar,
 } from "react-native";
 import { Appbar, Title, Card, Paragraph, Button } from "react-native-paper";
 import moment from "moment";
@@ -29,13 +30,11 @@ const OrderConfirmationScreen = ({ route, navigation }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        console.log(assignedRider.email);
         const response = await fetch(
           `http://${IP_ADDRESS}:5000/get-user-profile/${assignedRider.email}`
         );
         const userData = await response.json();
         setRiderDetails(userData);
-        console.log(riderDetails);
       } catch (error) {
         console.error("Error fetching rider details:", error);
       } finally {
@@ -76,6 +75,7 @@ const OrderConfirmationScreen = ({ route, navigation }) => {
   return (
     <View style={{ flex: 1 }}>
       {/* Appbar/Header */}
+      <StatusBar backgroundColor='#25d366'></StatusBar>
       <Appbar.Header style={{backgroundColor:'#25d366'}}>
         <Appbar.Content title="Order Confirmation" />
       </Appbar.Header>

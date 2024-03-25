@@ -1,4 +1,5 @@
 const { Op } = require("sequelize");
+const moment=require('moment')
 const Product = require("../../Models/Product/products");
 const Prescription = require("../../Models/Prescription/prescription");
 const User = require("../../Models/User/User");
@@ -9,8 +10,8 @@ const cloudinary = require("../../config/cloudinary");
 const Order = require("../../Models/Order/Order");
 const nodemailer = require('nodemailer');
 const randomstring = require('randomstring');
-
-// Nodemailer setup
+const Meeting=require('../../Models/Meeting/Meeting')
+const Payment=require('../../Models/Payment/Payments')
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -27,6 +28,21 @@ function generateOTP() {
     charset: 'numeric'
   });
 }
+const formatTime = (timeString) => {
+  const timeComponents = timeString.split(":");
+  let hours = parseInt(timeComponents[0]);
+  const minutes = timeComponents[1];
+  let meridiem = "AM";
+
+  if (hours >= 12) {
+    meridiem = "PM";
+    if (hours > 12) {
+      hours -= 12;
+    }
+  }
+
+  return `${hours}:${minutes} ${meridiem}`;
+};
 
 // Controller method to send OTP
 const sendOTP =  async (req, res) => {
@@ -53,6 +69,119 @@ const sendOTP =  async (req, res) => {
   });
   
 };
+
+// Controller method to send OTP
+const sendOrderEmail =  async (req, res) => {
+
+  const { newOrder } = req.body;
+  console.log(newOrder)
+  
+  const mailOptions = {
+    from: 'ruralmed123@gmail.com',
+    to: newOrder.customerID,
+    subject: 'Order Confirmation',
+    text: `Your Order number is ${newOrder.orderID}\n -> Order Placed on: ${newOrder.dateOfOrder}\n ->  Order sub-total: ${newOrder.orderTotal - newOrder.shippingCharges}\n -> Shipping Charges: ${newOrder.shippingCharges}\n -> Order Total: ${newOrder.orderTotal}`
+  };
+  
+
+  const info= await transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.log(error);
+      
+    } else {
+      console.log('Email sent: ' + info.response);
+      
+    }
+    
+  });
+  
+  const mailOptionsRider = {
+    from: 'ruralmed123@gmail.com',
+    to: newOrder.riderId,
+    subject: 'Order Recieved',
+    text: `Your have been assigned an Order number is ${newOrder.orderID}\n -> Order Assigned on: ${newOrder.dateOfOrder}\n -> Your fee: ${newOrder.shippingCharges}\n -> Order Total to be picked from Customer: ${newOrder.orderTotal}`
+  };
+  
+  const infoRider= await transporter.sendMail(mailOptionsRider, (error, info) => {
+    if (error) {
+      console.log(error);
+      
+    } else {
+      console.log('Email sent: ' + infoRider.response);
+      
+    }
+    
+  })
+  const mailOptionsOwner = {
+    from: 'ruralmed123@gmail.com',
+    to: newOrder.ownerId,
+    subject: 'Order Recieved',
+    text: `Your have been received an Order number is ${newOrder.orderID}\n -> Order Received on: ${newOrder.dateOfOrder}\n  -> Your Amount to be collected: ${newOrder.orderTotal-newOrder.shippingCharges}`
+  };
+  
+  const infoOwner= await transporter.sendMail(mailOptionsOwner, (error, info) => {
+    if (error) {
+      console.log(error);
+      res.status(500).json({ message: 'Failed to send Email' });
+
+    } else {
+      console.log('Email sent: ' + infoOwner.response);
+      res.status(200).json({ message: 'Order Placed email sent successfully', otp,success:true});
+      
+    }
+    
+  })
+  
+
+};
+const sendMeetingEmail =  async (req, res) => {
+
+  const { newMeeting } = req.body;
+  console.log(newMeeting)
+  
+  const mailOptions = {
+    from: 'ruralmed123@gmail.com',
+    to: newMeeting.customerId,
+    subject: 'Meeting Confirmation',
+    text: `Your Meeting number is ${newMeeting.meetingID}\n -> Meeting Scheduled for: ${newMeeting.scheduledDate}\n ->  Meeting charges: ${newMeeting.meetingFee}\n -> Please be there in the clinic on time: ${formatTime(newMeeting.startTime)}\n\n\n Regards\nTeam Ruralmed`
+  };
+  
+
+  const info= await transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.log(error);
+      
+    } else {
+      console.log('Email sent: ' + info.response);
+      
+    }
+    
+  });
+  
+  const mailOptionsDvm = {
+    from: 'ruralmed123@gmail.com',
+    to: newMeeting.dvmId,
+    subject: 'Meeting Appointment',
+    text: `Your have been booked for a meeting of which Meeting number is ${newMeeting.meetingID}\n -> Appointment Date is: ${newMeeting.scheduledDate}\n -> Your fee: ${newMeeting.meetingFee}\n -> Meeting Duration: 20 mins\n -> Meeting will start at: ${formatTime(newMeeting.startTime)}\n\n\n Regards\nTeam Ruralmed`
+  };
+  
+  const infoDvm= await transporter.sendMail(mailOptionsDvm, (error, info) => {
+    if (error) {
+      console.log(error);
+   res.status(500).json({ message: 'Failed to send Email' });
+
+      
+    } else {
+      console.log('Email sent: ' + infoDvm.response);
+  res.status(200).json({ message: 'Order Placed email sent successfully', otp,success:true});
+
+      
+    }
+    
+  
+
+  });
+}
 
 // Controller method to verify OTP
 const verifyOTP = (req, res) => {
@@ -479,37 +608,11 @@ const getProductById = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
-const updateUserAddress = async (req, res) => {
-  try {
-    console.log(req.body)
-    const { address, userEmail } = req.body;
-
-    // Find the user by email
-    const user = await User.findOne({ where: { email:userEmail } });
-
-    if (!user) {
-      // If user with the provided email is not found, send a 404 response
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    // Update the user's address
-    user.address = address;
-    await user.save();
-
-    // Send a success response
-    res.status(200).json({ success: true, message: 'Address updated successfully' });
-  } catch (error) {
-    // If any error occurs, send a 500 response with the error message
-    console.error('Error updating user address:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-};
 const getOrderCounts = async (req, res) => {
   try {
     const { email, role } = req.body;
 
-    // Check ifrole is 'Customer'
+    // Check if role is 'Customer'
     if (role === 'Customer') {
       // Get count of orders for the given customerID
       const totalOrders = await Order.count({ where: { customerID: email } });
@@ -549,137 +652,106 @@ const getOrderCounts = async (req, res) => {
     return res.status(500).json({ message: 'Internal server error' });
   }
 };
-const sendMeetingEmail =  async (req, res) => {
+const updateUserAddress = async (req, res) => {
+  try {
+    console.log(req.body)
+    const { address, userEmail } = req.body;
 
-  const { newMeeting } = req.body;
-  console.log(newMeeting)
-  
-  const mailOptions = {
-    from: 'ruralmed123@gmail.com',
-    to: newMeeting.customerId,
-    subject: 'Meeting Confirmation',
-    text: `Your Meeting number is ${newMeeting.meetingID}\n -> Meeting Scheduled for: ${newMeeting.scheduledDate}\n ->  Meeting charges: ${newMeeting.meetingFee}\n -> Please be there in the clinic on time: ${formatTime(newMeeting.startTime)}\n\n\n Regards\nTeam Ruralmed`
-  };
-  
+    // Find the user by email
+    const user = await User.findOne({ where: { email:userEmail } });
 
-  const info= await transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.log(error);
-      
-    } else {
-      console.log('Email sent: ' + info.response);
-      
+    if (!user) {
+      // If user with the provided email is not found, send a 404 response
+      return res.status(404).json({ error: 'User not found' });
     }
-    
-  });
-  
-  const mailOptionsDvm = {
-    from: 'ruralmed123@gmail.com',
-    to: newMeeting.dvmId,
-    subject: 'Meeting Appointment',
-    text: `Your have been booked for a meeting of which Meeting number is ${newMeeting.meetingID}\n -> Appointment Date is: ${newMeeting.scheduledDate}\n -> Your fee: ${newMeeting.meetingFee}\n -> Meeting Duration: 20 mins\n -> Meeting will start at: ${formatTime(newMeeting.startTime)}\n\n\n Regards\nTeam Ruralmed`
-  };
-  
-  const infoDvm= await transporter.sendMail(mailOptionsDvm, (error, info) => {
-    if (error) {
-      console.log(error);
-   res.status(500).json({ message: 'Failed to send Email' });
 
-      
-    } else {
-      console.log('Email sent: ' + infoDvm.response);
-  res.status(200).json({ message: 'Order Placed email sent successfully', otp,success:true});
+    // Update the user's address
+    user.address = address;
+    await user.save();
 
-      
-    }
-    
-  
-
-  });
-}
-
-// Controller method to send OTP
-const sendOrderEmail =  async (req, res) => {
-
-  const { newOrder } = req.body;
-  console.log(newOrder)
-  
-  const mailOptions = {
-    from: 'ruralmed123@gmail.com',
-    to: newOrder.customerID,
-    subject: 'Order Confirmation',
-    text: `Your Order number is ${newOrder.orderID}\n -> Order Placed on: ${newOrder.dateOfOrder}\n ->  Order sub-total: ${newOrder.orderTotal - newOrder.shippingCharges}\n -> Shipping Charges: ${newOrder.shippingCharges}\n -> Order Total: ${newOrder.orderTotal}`
-  };
-  
-
-  const info= await transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.log(error);
-      
-    } else {
-      console.log('Email sent: ' + info.response);
-      
-    }
-    
-  });
-  
-  const mailOptionsRider = {
-    from: 'ruralmed123@gmail.com',
-    to: newOrder.riderId,
-    subject: 'Order Recieved',
-    text: `Your have been assigned an Order number is ${newOrder.orderID}\n -> Order Assigned on: ${newOrder.dateOfOrder}\n -> Your fee: ${newOrder.shippingCharges}\n -> Order Total to be picked from Customer: ${newOrder.orderTotal}`
-  };
-  
-  const infoRider= await transporter.sendMail(mailOptionsRider, (error, info) => {
-    if (error) {
-      console.log(error);
-      
-    } else {
-      console.log('Email sent: ' + infoRider.response);
-      
-    }
-    
-  })
-  const mailOptionsOwner = {
-    from: 'ruralmed123@gmail.com',
-    to: newOrder.ownerId,
-    subject: 'Order Recieved',
-    text: `Your have been received an Order number is ${newOrder.orderID}\n -> Order Received on: ${newOrder.dateOfOrder}\n  -> Your Amount to be collected: ${newOrder.orderTotal-newOrder.shippingCharges}`
-  };
-  
-  const infoOwner= await transporter.sendMail(mailOptionsOwner, (error, info) => {
-    if (error) {
-      console.log(error);
-      res.status(500).json({ message: 'Failed to send Email' });
-
-    } else {
-      console.log('Email sent: ' + infoOwner.response);
-      res.status(200).json({ message: 'Order Placed email sent successfully', otp,success:true});
-      
-    }
-    
-  })
-  
-
+    // Send a success response
+    res.status(200).json({ success: true, message: 'Address updated successfully' });
+  } catch (error) {
+    // If any error occurs, send a 500 response with the error message
+    console.error('Error updating user address:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 };
+const getMeetingById = async (req, res) => {
+  try {
+    const { meetingID } = req.params;
+
+    // Query the Meeting table for the meeting with the specified meetingID
+    const meeting = await Meeting.findOne({
+      where: {
+        meetingID: meetingID,
+      },
+    });
+
+    if (!meeting) {
+      return res.status(404).json({ error: "Meeting not found" });
+    }
+
+    return res.status(200).json({ meeting });
+  } catch (error) {
+    console.error("Error retrieving meeting:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+const uploadPayment = (req, res) => {
+  cloudinary.uploader
+    .upload(req.file.path, {
+      public_id: `${req.body.email}_payment`,
+      width: 500,
+      height: 500,
+      crop: "fill",
+    })
+    .then((result) => {
+      // Create a new record in the Prescription table
+      return Payment.create({
+        picture: result.secure_url,
+        paymentMode: req.body.mode,
+        orderID:req.body.orderID
+      });
+    })
+    .then((data) => {
+      // The prescription has been successfully added
+      res.status(200).json({
+        success: true,
+        message: "Payment uploaded successfully",
+        link: data.picture,
+      });
+    })
+    .catch((err) => {
+      // Handle any errors that occurred during the process
+      res
+        .status(500)
+        .json({ success: false, message: "Server error, try after some time" });
+    });
+};
+
 module.exports = {
-  signupController,
-  loginController,
-  uploadPrescription,
-  uploadProfile,
-  validateUserDataController,
-  getUserEmailByContactNumber,
-  getUserProfile,
-  createNotification,
-  getNotifications,
-  updateNotifications,
-  updateNotificationStatus,
-  getOrderById,
-  getProductById,
-  sendOTP,
-  verifyOTP,updateUserFieldController,
-  updateUserAddress,
-  getOrderCounts,
-  sendOrderEmail,
-  sendMeetingEmail
+  signupController, //sign up user data into db
+  loginController, //checking pohone no and password of user from db
+  uploadPrescription, //uploading prescription to server(cloud)
+  uploadProfile, //upload profiile picture at time of signup
+  validateUserDataController, //data validation at time of signup
+  getUserEmailByContactNumber, //getting email of user by passing contact no
+  getUserProfile, //getting user profile
+  createNotification, //creating notification of order only in db
+  getNotifications, //getting notifications of a specific user
+  updateNotifications, //updating notification when user opens it
+  updateNotificationStatus, //updating notifications when user read it
+  getOrderById, //getting order by ID
+  getProductById, //getting a specific product by ID
+  sendOTP, //sending otp code on user email
+  verifyOTP, //verifying user entered otp 
+  updateUserFieldController, //updating data of user
+  getOrderCounts, //aik user k ktne orders hain
+  updateUserAddress, //user ki locatiuon update
+  getMeetingById, //meeting aa ri hai by ID
+  uploadPayment,//payment ss cloud pe iupload ho rha hai
+  sendOrderEmail, //order hone pe users ko email ja ri hai
+  sendMeetingEmail //meeting hone pe customer or dvm ko email
 };

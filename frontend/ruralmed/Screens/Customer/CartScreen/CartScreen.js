@@ -42,7 +42,7 @@ const CartScreen = ({ navigation, route }) => {
         translucent={true}
         height={20}
       />
-      <Appbar.Header>
+      <Appbar.Header style={{backgroundColor:'#25d366'}}>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title="Shopping Cart" />
       </Appbar.Header>

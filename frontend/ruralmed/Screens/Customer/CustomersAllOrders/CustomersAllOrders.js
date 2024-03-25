@@ -113,16 +113,16 @@ const getStatusColor = (status) => {
           {order.orderStatus === "completed" && (
             <View>
               {order.hasReviewed ? (
-                <Text style={[styles.reviewButton,{backgroundColor:"#888888"}]}>Review submitted</Text>
+                <Text style={[styles.reviewButton,{backgroundColor:"#888888"}]}>Reviewed</Text>
               ) : (
                 <TouchableOpacity
                   style={styles.reviewButton}
                   onPress={() => {
                     console.log('aim');
-                    navigation.navigate("RateScreen", { order: order });
+                    navigation.replace("RateScreen", { order: order });
                   }}
                 >
-                  <Text style={{ color: "white" }}>Write a Review</Text>
+                  <Text style={{ color: "white" }}>Review</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -143,7 +143,7 @@ const getStatusColor = (status) => {
 
   return (
     <View style={styles.container}>
-      <AppHeaderCustomer  navigation={navigation}></AppHeaderCustomer>
+      <AppHeaderCustomer isProfile={true}  navigation={navigation}></AppHeaderCustomer>
       <View style={{ paddingTop: 10, alignItems: "center" }}>
         <Title style={{ color: "black", fontSize: 24, fontWeight: "bold" }}>
           All Your Orders
@@ -198,13 +198,6 @@ const getStatusColor = (status) => {
         )}
       </ScrollView>
 
-      <Button
-        mode="contained"
-        onPress={() => navigation.replace("HomeCustomer")}
-        style={styles.bottomButton}
-      >
-        Go to Home
-      </Button>
     </View>
   );
 };

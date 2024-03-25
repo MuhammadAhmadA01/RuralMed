@@ -55,6 +55,28 @@ const getProducts = async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 };
+const deleteProduct = async (req, res) => {
+  const { productId } = req.params;
+  console.log(productId);
+  try {
+    // Find the product by its ID
+    const product = await Product.findByPk(productId);
+    console.log(product);
+    // Check if the product exists
+    if (!product) {
+      return res.status(404).send("Product not found");
+    }
+
+    // Delete the product
+    await product.destroy();
+
+    res.status(204).send(); // Send 204 No Content status to indicate successful deletion
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
 const getStoreById = async (req, res) => {
   try {
     const { storeID } = req.params;
@@ -74,5 +96,62 @@ const getStoreById = async (req, res) => {
     res.status(500).json({ error: "Internal server error", success: false });
   }
 };
+const updateProduct = async (req, res) => {
+  const { name, description, availableQuantity, productID } = req.body;
 
-module.exports = { createStore, getProducts, getStoreById };
+  try {
+    // Find the product by its ID
+    const product = await Product.findByPk(productID);
+
+    // Check if the product exists
+    if (!product) {
+      return res.status(404).send("Product not found");
+    }
+
+    // Update the product details
+    product.name = name;
+    product.description = description;
+    product.availableQuantity = availableQuantity;
+
+    // Save the updated product
+    await product.save();
+
+    res.json(product); // Return the updated product in the response
+  } catch (error) {
+    console.error("Error updating product:", error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+const updateEnableDisableProduct = async (req, res) => {
+  const { productID, hasEnabled } = req.body;
+
+  try {
+    // Find the product by its ID
+    const product = await Product.findByPk(productID);
+
+    // Check if the product exists
+    if (!product) {
+      return res.status(404).send("Product not found");
+    }
+
+    // Update the product's hasEnabled attribute
+    product.has_enabled = hasEnabled;
+
+    // Save the updated product
+    await product.save();
+
+    res.json(product); // Return the updated product in the response
+  } catch (error) {
+    console.error("Error updating product:", error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+module.exports = {
+  createStore,
+  getProducts,
+  getStoreById,
+  deleteProduct,
+  updateProduct,
+  updateEnableDisableProduct,
+};

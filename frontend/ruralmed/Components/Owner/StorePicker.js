@@ -63,6 +63,7 @@ const styles = StyleSheet.create({
   },
   selectedItem: {
     backgroundColor: "#25d366",
+    borderRadius:50
   },
   pickerText: {
     fontSize: 16,

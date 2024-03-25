@@ -5,7 +5,7 @@ import { Appbar, Menu, Badge } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NotificationsDisplay from "../User/NotificationDisplay";
 import IP_ADDRESS from "../../config/config";
-const AppHeader = ({ navigation }) => {
+const AppHeader = ({ navigation, isHome }) => {
   const [menuVisible, setMenuVisible] = useState(false);
   const [notificationsModalVisible, setNotificationsModalVisible] =
     useState(false);
@@ -88,6 +88,7 @@ const AppHeader = ({ navigation }) => {
     <>
       <StatusBar backgroundColor="#25d366" barStyle="light-content" />
       <Appbar.Header style={{ backgroundColor: "#25d366" }}>
+        
         <Menu
           visible={menuVisible}
           onDismiss={closeMenu}
@@ -99,12 +100,12 @@ const AppHeader = ({ navigation }) => {
             style={{ alignItems: "center", marginLeft: "12%" }}
             titleStyle={{ fontSize: 18, fontWeight: "bold" }}
           />
-          <Menu.Item
+              <Menu.Item
             style={{ alignItems: "center", paddingLeft: "5%" }}
-            onPress={() => console.log("Item 1")}
+            onPress={() => { setMenuVisible(false);navigation.replace('ViewProfile',{role:'Owner'})}}
             title="My Profile"
           />
-          <Menu.Item
+      <Menu.Item
             style={{ alignItems: "center", paddingLeft: "5%" }}
             onPress={() => {
               setMenuVisible(false);
@@ -135,7 +136,15 @@ const AppHeader = ({ navigation }) => {
             title="Logout"
           />
         </Menu>
-        <Appbar.Content title="RuralMed" style={{ alignItems: "center" }} />
+        <Appbar.Content title="RuralMed" style={{ alignItems: "center", marginLeft:isHome?0:50 }} />
+        {!isHome && <Appbar.Action
+      icon="home"
+      onPress={() => {
+        navigation.navigate('HomeOwner');
+      }}
+    />
+}
+    
         <Appbar.Action
           icon="bell"
           onPress={() => {
@@ -155,6 +164,7 @@ const AppHeader = ({ navigation }) => {
         >
           {notificationCount}
         </Badge>
+      
       </Appbar.Header>
       <NotificationsDisplay
         notifications={notificationsData}

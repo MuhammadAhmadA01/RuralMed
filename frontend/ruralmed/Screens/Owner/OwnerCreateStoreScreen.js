@@ -12,9 +12,9 @@ import {
 } from "react-native";
 import { Title, RadioButton } from "react-native-paper";
 import MapComponent from "../MapView/MapInputComponent";
-import TimePicker from "../../Components/TimePicker";
+import TimePicker from "../../Components/User/TimePicker";
 import { styles } from "../styles/styles";
-import AppHeader from "../../Components/OwnerAppHeader";
+import AppHeader from "../../Components/Owner/OwnerAppHeader";
 const StoreScreen = ({ navigation }) => {
   const [storeName, setStoreName] = useState("");
   const [storeContact, setStoreContact] = useState("");

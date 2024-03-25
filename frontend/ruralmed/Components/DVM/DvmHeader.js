@@ -4,9 +4,10 @@ import { Appbar, Menu, Badge } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import IP_ADDRESS from "../../config/config";
 import NotificationsDisplay from "../User/NotificationDisplay";
+import { StatusBar } from "react-native";
 
 // Create the AppHeaderRider component
-const AppHeaderRider = ({ navigation }) => {
+const AppHeaderDvm = ({ navigation }) => {
   const [notificationsModalVisible, setNotificationsModalVisible] =
     useState(false);
   const [notificationsData, setNotificationsData] = useState([]);
@@ -30,9 +31,8 @@ const AppHeaderRider = ({ navigation }) => {
     }
   };
   useEffect(() => {
-    const fetchRiderNotifications = async () => {
+    const fetchDvmNotifications = async () => {
       try {
-        // Fetch ridefr email
         const contactNumber = await AsyncStorage.getItem("phone");
         const emailResponse = await fetch(
           `http://${IP_ADDRESS}:5000/get-email`,
@@ -49,27 +49,28 @@ const AppHeaderRider = ({ navigation }) => {
         setEmail(emailData.email);
 
         const notifications = await fetch(
-          `http://${IP_ADDRESS}:5000/notifications/${emailData.email}/Rider`
+          `http://${IP_ADDRESS}:5000/get-meeting-notifications/${emailData.email}`
+
         );
         const notificationsData = await notifications.json();
 
         const unreadNotifications = notificationsData.filter(
-          (notification) => !notification.isOpenedByRider
+          (notification) => !notification.isOpenedByDvm
         );
         setNotificationCount(unreadNotifications.length);
 
         setNotificationsData(notificationsData);
       } catch (error) {
-        console.error("Error fetching rider notifications:", error);
+        console.error("Error fetching Dvm notifications:", error);
       }
     };
-    fetchRiderNotifications();
+    fetchDvmNotifications();
   }, []);
   const handleNotificationsClick = async () => {
     try {
       // Update notifications as opened for the rider
       const updateNotificationsResponse = await fetch(
-        `http://${IP_ADDRESS}:5000/update-notifications/${email}/Rider`,
+        `http://${IP_ADDRESS}:5000/update-notifications-meeting/${email}/Dvm`,
         {
           method: "PUT",
         }
@@ -91,6 +92,7 @@ const AppHeaderRider = ({ navigation }) => {
   return (
     <>
       {/* Appbar/Header */}
+      <StatusBar backgroundColor="#25d366"></StatusBar>
       <Appbar.Header style={{ backgroundColor: "#25d366" }}>
         {/* Menu */}
         <Menu
@@ -107,21 +109,21 @@ const AppHeaderRider = ({ navigation }) => {
           />
           <Menu.Item
             style={{ alignItems: "center", paddingLeft: "5%" }}
-            onPress={() => { setMenuVisible(false);navigation.replace('HomeRider')}}
+            onPress={() => { setMenuVisible(false);navigation.replace('HomeDvm')}}
             title="My Dashboard"
           />
          
           <Menu.Item
             style={{ alignItems: "center", paddingLeft: "5%" }}
-            onPress={() => { setMenuVisible(false);navigation.replace('ViewProfile',{role:'Rider'})}}
+            onPress={() => { setMenuVisible(false);navigation.replace('ViewProfile',{role:'Dvm'})}}
             title="My Profile"
           />
           <Menu.Item
             style={{ alignItems: "center", paddingLeft: "5%" }}
-            onPress={() => {              navigation.navigate("AllOrdersScreen",{role:"rider"});
+            onPress={() => {              navigation.navigate("AllMeetingsDvmScreen",{role:"Dvm"});
               setMenuVisible(false);
             }}
-            title="My Orders"
+            title="My Meetings"
           />
           <Menu.Item
             style={{ alignItems: "center", paddingLeft: "17%" }}
@@ -160,11 +162,12 @@ const AppHeaderRider = ({ navigation }) => {
         notifications={notificationsData}
         onClose={() => setNotificationsModalVisible(false)}
         isVisible={notificationsModalVisible}
-        role="Rider"
+        role="Dvm"
+        email={email}
         navigation={navigation}
       />
     </>
   );
 };
 
-export default AppHeaderRider;
+export default AppHeaderDvm;

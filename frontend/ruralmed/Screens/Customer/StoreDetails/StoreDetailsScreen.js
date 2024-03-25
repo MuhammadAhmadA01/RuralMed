@@ -1,4 +1,5 @@
 import IP_ADDRESS from "../../../config/config";
+import { FontAwesome5 } from "@expo/vector-icons";
 import styles from "./styles/styles";
 import React, { useEffect, useState } from "react";
 import {
@@ -10,31 +11,22 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
-import { Appbar, Badge } from "react-native-paper";
+import { Appbar, Badge, Title } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
 import { addToCart, removeFromCart } from "../../../Components/Cart/CartSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-// Define the StoreDetailsScreen component
 const StoreDetailsScreen = ({ route, navigation }) => {
   const { store, products, contactNum } = route.params;
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart.cartItems);
-  // State to manage the visibility of the "View Cart" button
   const [showViewCartButton, setShowViewCartButton] = useState(false);
-
-  // Function to handle adding/removing items from the cart
-
-  // Effect to update the visibility of the "View Cart" button
   useEffect(() => {
     setShowViewCartButton(cartItems.length > 0);
   }, [cartItems]);
-
   const handleAddToCart = async (product) => {
     const existingItem = cartItems.find(
       (item) => item.productID === product.productID
     );
-    // Define the API endpoint
     if (!existingItem) {
       const sameStoreCheck = cartItems.find(
         (item) => item.storeId === product.storeId
@@ -42,9 +34,7 @@ const StoreDetailsScreen = ({ route, navigation }) => {
       if (sameStoreCheck || !cartItems.length) {
         const apiEndpoint = `http://${IP_ADDRESS}:5000/add-to-cart`;
         const phoneNum = await AsyncStorage.getItem("phone");
-
         try {
-          // Make API call
           const response = await fetch(apiEndpoint, {
             method: "POST",
             headers: {
@@ -55,9 +45,7 @@ const StoreDetailsScreen = ({ route, navigation }) => {
               product,
             }),
           });
-
           if (response.ok) {
-            // If the API call is successful, dispatch the action to update the Redux store
             dispatch(addToCart(product));
           } else if (response.status === 404) {
             Alert.alert(
@@ -73,21 +61,19 @@ const StoreDetailsScreen = ({ route, navigation }) => {
           );
         }
       } else {
-        Alert.alert("Choose from Same Store","Cannot add products in cart from different stores");
+        Alert.alert(
+          "Choose from Same Store",
+          "Cannot add products in cart from different stores"
+        );
         return;
       }
     } else {
       const apiEndpoint2 = `http://${IP_ADDRESS}:5000/remove-from-cart/${product.productID}/${contactNum}`;
-
       try {
-        // Make API call
         const response = await fetch(apiEndpoint2);
         if (response.ok) {
-          // If the API call is successful, dispatch the action to update the Redux store
           dispatch(removeFromCart(product.productID));
-        } else {
-          console.error("Remove from cart API call failed", response);
-        }
+        } else console.error("Remove from cart API call failed", response);
       } catch (error) {
         console.error(
           "Remove from cart API call failed with an exception:",
@@ -96,22 +82,17 @@ const StoreDetailsScreen = ({ route, navigation }) => {
       }
     }
   };
-  // Render the component
   return (
     <View style={{ flex: 1 }}>
-      {/* Customize status bar color */}
       <StatusBar
         backgroundColor="#25d366"
         barStyle="light-content"
         translucent={true}
         height={20}
       />
-
-      {/* Appbar/Header */}
       <Appbar.Header style={{ backgroundColor: "#25d366" }}>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title={store.storeName} />
-        {/* Cart icon with badge */}
         <TouchableOpacity
           onPress={() =>
             navigation.navigate("CartScreen", { contactNum: contactNum })
@@ -124,18 +105,11 @@ const StoreDetailsScreen = ({ route, navigation }) => {
                 navigation.navigate("CartScreen", { contactNum: contactNum })
               }
             />
-
             {cartItems.length > 0 && (
               <Badge
                 visible={cartItems.length > 0}
                 size={23}
-                style={{
-                  position: "absolute",
-                  top: 2,
-                  right: 2,
-                  backgroundColor: "white",
-                  color: "black",
-                }}
+                style={styles.badge}
               >
                 {cartItems.length}
               </Badge>
@@ -143,15 +117,19 @@ const StoreDetailsScreen = ({ route, navigation }) => {
           </View>
         </TouchableOpacity>
       </Appbar.Header>
-
-      {/* Store Image */}
       <Image
-        source={{ uri: "https://via.placeholder.com/350" }}
-        style={{ height: 200, width: "100%" }}
+        source={{
+          uri:
+            store.storeType === "Agriculture"
+              ? "https://i.ibb.co/VSbD0cf/pexels-flambo-1112080-1.jpg"
+              : store.storeType === "Pharmacy"
+              ? "https://i.ibb.co/59nTNhP/laurynas-me-1-TL8-Ao-EDj-c-unsplash.jpg"
+              : "https://i.ibb.co/J5bFMhq/istockphoto-1167064450-612x612.jpg",
+        }}
+        style={styles.image}
       />
-
-      {/* Products */}
       <ScrollView>
+        <Title style={{marginLeft:105, fontSize:26, marginTop:20, fontWeight:'700',color:'#25d366'}}>Available Items</Title>
         {products.length > 0 ? (
           products.map((product) => (
             <View key={product.productID} style={styles.productContainer}>
@@ -161,7 +139,6 @@ const StoreDetailsScreen = ({ route, navigation }) => {
                   {product.description}
                 </Text>
                 <Text style={styles.productPrice}>${product.price}</Text>
-                {/* Add/Remove from Cart button */}
                 <TouchableOpacity
                   onPress={() => handleAddToCart(product)}
                   style={styles.addToCartButton}
@@ -170,8 +147,9 @@ const StoreDetailsScreen = ({ route, navigation }) => {
                     {cartItems.filter(
                       (item) => item.productID === product.productID
                     ).length > 0
-                      ? "Remove"
-                      : "Add"}
+                      ?   <FontAwesome5 name="trash-alt" size={24} color="red" />
+                      : <FontAwesome5 name="cart-plus" size={24} color="#25d366" />
+                    }
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -180,9 +158,8 @@ const StoreDetailsScreen = ({ route, navigation }) => {
         ) : (
           <Text>No products available</Text>
         )}
-
-        {/* "View Cart" button */}
-        {showViewCartButton && (
+      </ScrollView>
+      {showViewCartButton && (
           <TouchableOpacity
             style={styles.viewCartButton}
             onPress={() =>
@@ -194,9 +171,8 @@ const StoreDetailsScreen = ({ route, navigation }) => {
             </Text>
           </TouchableOpacity>
         )}
-      </ScrollView>
+
     </View>
   );
 };
-
 export default StoreDetailsScreen;

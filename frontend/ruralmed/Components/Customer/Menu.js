@@ -11,35 +11,35 @@ const MenuCustomer=({navigation})=>{
 return (<Menu
           visible={menuVisible}
           onDismiss={closeMenu}
-          style={{ marginTop: "18%", width: "50%", height: "30%" }}
+          style={{ marginTop: "2%", width: "50%", height: "30%" }}
           anchor={<Appbar.Action icon="menu" onPress={openMenu} />}
         >
           <Menu.Item
             title="MENU"
-            style={{ alignItems: "center", marginLeft: "12%" }}
+            style={{ alignItems: "center", marginLeft: "14%" }}
             titleStyle={{ fontSize: 18, fontWeight: "bold" }}
           />
-          <Menu.Item
+            <Menu.Item
             style={{ alignItems: "center", paddingLeft: "5%" }}
-            onPress={() => console.log("Item 1")}
-            title="My Profile"
+            onPress={() => { setMenuVisible(false);navigation.replace('HomeCustomer')}}
+            title={"    Home"}
           />
-          <Menu.Item
+        <Menu.Item
             style={{ alignItems: "center", paddingLeft: "5%" }}
             onPress={() => {
                 closeMenu();
-                navigation.navigate('CustomersAllOrders')}}
+                navigation.replace('CustomersAllOrders')}}
             title="My Orders"
           />
           <Menu.Item
             style={{ alignItems: "center", paddingLeft: "5%" }}
-            onPress={() => console.log("Item 3")}
+            onPress={() => {setMenuVisible(false);navigation.replace('ViewAllMeetings',{navigation:navigation})}}
             title="My Meetings"
           />
           <Menu.Item
             style={{ alignItems: "center", paddingLeft: "3%" }}
             onPress={() => console.log("Item 4")}
-            title="My Prescriptions"
+            title="My Reviews"
           />
           <Menu.Item
             style={{ alignItems: "center", paddingLeft: "17%" }}

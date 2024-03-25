@@ -11,7 +11,7 @@ import {
   Linking,
 } from "react-native";
 import IP_ADDRESS from "../../config/config";
-import AppHeaderRider from "../../Components/Rider/RiderAppHeader"; 
+import AppHeaderRider from "../../Components/Rider/RiderAppHeader";
 import { Ionicons } from "@expo/vector-icons";
 import ProductCard from "../../Components/Owner/ProductCard";
 import AppHeader from "../../Components/Owner/OwnerAppHeader";
@@ -94,21 +94,17 @@ const NotificationOrderDetailScreen = ({ route, navigation }) => {
     fetchOrderDetails();
   }, []);
 
-  
   const handleUpdateOrder = async (orderStatus) => {
-    
     const response = await fetch(
       `http://${IP_ADDRESS}:5000/update-order/${orderID}/${orderStatus}`
     );
     const data = await response.json();
     if (response.ok) {
-      console.log(orderDetails)
+      console.log(orderDetails);
       setOrderDetails((prevOrderDetails) => ({
         ...prevOrderDetails,
-        orderStatus: orderStatus, 
+        orderStatus: orderStatus,
       }));
-     
-     
     } else {
       console.log("Error updatin order status:", data.message);
     }
@@ -336,7 +332,7 @@ const NotificationOrderDetailScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff", 
+    backgroundColor: "#fff",
   },
   disabledButton: {
     backgroundColor: "grey",
@@ -375,18 +371,17 @@ const styles = StyleSheet.create({
     color: "white",
     textAlign: "center",
   },
-  signupButton: {
-    backgroundColor: "#25d366",
-    borderRadius: 20,
-    paddingVertical: "2%",
+  signupButton: {padding: 14,
+    borderRadius: 50,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: "2%",
-    marginBottom: "2%",
+    margin: 16,
+    backgroundColor: "#25d366",
+  
   },
   signupButtonText: {
     color: "#fff",
-    fontSize: windowWidth * 0.04, 
+    fontSize: windowWidth * 0.04,
   },
   mapButton: {
     width: "40%",
@@ -403,7 +398,7 @@ const styles = StyleSheet.create({
   },
   prescriptionImage: {
     width: "80%",
-    height: 200, 
+    height: 200,
     borderRadius: 10,
     marginBottom: 16,
     aspectRatio: 1,

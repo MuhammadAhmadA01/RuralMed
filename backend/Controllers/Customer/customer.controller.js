@@ -11,7 +11,8 @@ const USER = require("../../Models/User/User");
 const Rider = require("../../Models/Rider/Rider");
 const Store = require("../../Models/Store/Store");
 const Ratings=require('../../Models/Ratings/ratings')
-
+const Meeting=require('../../Models/Meeting/Meeting')
+const DVM=require('../../Models/DVM/DVM')
 const createCustomer = (req, res) => {
   const { cnic, email, deliveryFee } = req.body;
 
@@ -597,7 +598,6 @@ const addRating = async (req, res) => {
     res.status(500).json({ success: false, error: 'Internal Server Error' });
   }
 };
-
 const addMeeting = async (req, res) => {
   try {
     // Extract data from the request body
@@ -620,6 +620,25 @@ const addMeeting = async (req, res) => {
   } catch (error) {
     console.error('Error adding meeting:', error);
     res.status(500).json({ error: 'Failed to add meeting' });
+  }
+};
+const getMeetingsByDateAndDvm = async (req, res) => {
+  const { date, dvmId } = req.body;
+
+  try {
+    console.log(date)
+    // Retrieve meetings from the database based on date and DVM ID
+    const meetings = await Meeting.findAll({
+      where: {
+        scheduledDate: date,
+        dvmId: dvmId
+      }
+    });
+
+    res.json(meetings);
+  } catch (error) {
+    console.error('Error retrieving meetings:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 const getAllMeetingsByCustomerId = async (req, res) => {
@@ -659,21 +678,61 @@ const getAllMeetingsByCustomerId = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+const getReviewedOrdersWithRatings = async (req, res) => {
+  try {
+    const { customerId } = req.body;
+
+    // Find all orders with hasReviewed=true for the given customerId
+    const orders = await Orders.findAll({
+      where: {
+        customerId: customerId,
+        hasReviewed: true
+      }
+    });
+
+    // Array to store results
+    const results = [];
+
+    // Loop through each order and find its corresponding rating
+    for (const order of orders) {
+      const rating = await Ratings.findOne({
+        where: {
+          order_id: order.id
+        }
+      });
+
+      // Combine order and rating data and push to results array
+      results.push({
+        order: order,
+        rating: rating
+      });
+    }
+
+    res.status(200).json(results);
+  } catch (error) {
+    console.error('Error fetching reviewed orders with ratings:', error);
+    res.status(500).json({ message: 'Failed to fetch reviewed orders with ratings' });
+  }
+};
+
 module.exports = {
-  updateQuantity,
-  removeFromCart,
-  getCartByCustomerContact,
-  getNearbyStoresForCustomers,
-  createCustomer,
-  createPrescription,
-  placeOrder,
-  viewProfile,
-  viewPrescriptions,
-  viewOrders,
-  calculateRiderDistance,
-  addToCart,
-  deleteCartItem,
-  addRating,
-  addMeeting,
-  getAllMeetingsByCustomerId
+  updateQuantity, //cart se user product ko plus minus kre
+  removeFromCart, //cart se user priduct ko remove krde
+  getCartByCustomerContact, //customer k phone se uska cart get krna
+  getNearbyStoresForCustomers, //customer k qareeb k stores
+  createCustomer, // customer ka additonal data store krna
+  createPrescription, //jo cloud se image link aa rha hai, usey apni db me store kr rhe hain
+  placeOrder, //order place ho rha hai
+  viewProfile, //profile get ho ri hai
+  viewPrescriptions, //
+  viewOrders, //orders get ho rhe hain aik specific customer k
+  calculateRiderDistance, //store location or customer home se rider ktni door hai
+  addToCart, //product cart me add ho ri hai
+  deleteCartItem, // same as cart se remove
+  addRating, //customer order complete hone k bd uska review dede
+  addMeeting, // customer jo meeting book krta hai
+  getMeetingsByDateAndDvm,//date wise aik specific dvm ki meetings get ho ri hain
+  getAllMeetingsByCustomerId, //aik specific customer ki meetoings get ho ri hain
+  getReviewedOrdersWithRatings //knsa order revioewed hai or knsa ni hai
 };
