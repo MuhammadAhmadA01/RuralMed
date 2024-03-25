@@ -11,7 +11,7 @@ import CustomerHomeScreen from "./Screens/Customer/HomeScreen/CustomerHomeScreen
 import OwnerHomeScreen from "./Screens/Owner/OwnerHomeScreen";
 import Signup from "./Screens/User/UserSignupScreen";
 import StoreScreen from "./Screens/Owner/OwnerCreateStoreScreen";
-import RiderHomeScreen from "./Screens/Rider/RiderHomeScreen";
+import RiderHomeScreen from "./Screens/Rider/HomeScreen/RiderHomeScreen";
 import StoreDetailsScreen from "./Screens/Customer/StoreDetails/StoreDetailsScreen";
 import CartScreen from "./Screens/Customer/CartScreen/CartScreen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -32,6 +32,13 @@ import CustomerAllOrders from "./Screens/Customer/CustomersAllOrders/CustomersAl
 import RatingReviewScreen from "./Screens/Customer/RatingReviewScreen/RatingReviewScreen";
 import ChatScreen from "./Screens/User/ChatScreen";
 import AllOrdersScreen from "./Screens/User/AllOrdersScreen";
+import ProfileScreen from "./Screens/User/ProfileView/ViewProfile";
+import AddDVMScreen from "./Screens/DVMs/InputScreen/InputScreenDVM";
+import DvmAppointmentScreen from "./Screens/DVMs/BookAppointment/BookAppointment";
+import CustomerAllMeetings from "./Screens/Customer/CustomerAllMeetings/CustomerAllMeetings";
+import DvmHomeScreen from "./Screens/DVMs/HomeScreen/DvmHome";
+import DvmAllMeetings from "./Screens/DVMs/AllMeetingsScreen/AllMeetingsDvm";
+import AllProductsOfScreen from "./Screens/Owner/StoresProducts/AllProductsOfStore";
 
 const store = configureStore({
   reducer: {
@@ -97,10 +104,28 @@ export default function App() {
             <Stack.Screen name="Owner" component={StoreOwnerScreen} />
             <Stack.Screen name="MapInput" component={MapComponent}/>
             <Stack.Screen name="RateScreen" component={RatingReviewScreen}/>
-   
+            <Stack.Screen name="HomeDvm" component={DvmHomeScreen}/>
             <Stack.Screen
               name="AllOrdersScreen"
               component={AllOrdersScreen}
+            />
+            <Stack.Screen
+              name="AllProductsOfStoreScreen"
+              component={AllProductsOfScreen}
+            />
+   <Stack.Screen
+              name="AllMeetingsDvmScreen"
+              component={DvmAllMeetings}
+            />
+   
+   <Stack.Screen
+              name="ViewAllMeetings"
+              component={CustomerAllMeetings}
+            />
+            
+            <Stack.Screen
+              name="BookAppointmentScreen"
+              component={DvmAppointmentScreen}
             />
             <Stack.Screen
               name="ChatScreen"
@@ -119,6 +144,11 @@ export default function App() {
             <Stack.Screen
               name="PrescriptionPlaceOrderScreen"
               component={PrescriptionPlaceOrderScreen}
+            />
+
+<Stack.Screen
+              name="DVM"
+              component={AddDVMScreen}
             />
 
             <Stack.Screen name="HomeCustomer" component={CustomerHomeScreen} />
@@ -143,6 +173,10 @@ export default function App() {
             <Stack.Screen
               name="NotificationOrderDetails"
               component={NotificatonOrderDetailScreen}
+            />
+  <Stack.Screen
+              name="ViewProfile"
+              component={ProfileScreen}
             />
 
             <Stack.Screen

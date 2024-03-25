@@ -4,6 +4,7 @@ const multer = require("multer");
 const Notification = require("../Models/Notifications/Notification");
 const Orders = require("../Models/Order/Order");
 const product = require("../Models/Product/products");
+const ratings=require('../Models/Ratings/ratings')
 const customerController = require("../Controllers/Customer/customer.controller");
 const Cart = require("../Models/Cart/Cart");
 const {
@@ -17,7 +18,11 @@ router.post(
   validateCustomer,
   customerController.createCustomer
 );
+router.post('/addRating', customerController.addRating);
+router.get('/meetings', customerController.getAllMeetingsByCustomerId);
 router.post("/add-to-cart", customerController.addToCart);
+router.post("/book-meeting", customerController.addMeeting);
+router.post('/booked-meetings',customerController.getMeetingsByDateAndDvm)
 router.get(
   "/get-stores/:email",
   customerController.getNearbyStoresForCustomers
@@ -37,6 +42,9 @@ router.get(
   "/get-cart/:customer_contact",
   customerController.getCartByCustomerContact
 );
+router.get('/get-customers-orders/:id',customerController.viewOrders)
+
+router.get('/get-customers-meetings/:id',customerController.getAllMeetingsByCustomerId)
 router.get(
   "/remove-from-cart/:productID/:customerContact",
   customerController.removeFromCart
