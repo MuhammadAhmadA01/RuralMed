@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
   Switch,
+  StatusBar,
 } from "react-native";
 import styles from "./styles/styles";
 import { Title, Appbar } from "react-native-paper";
@@ -37,7 +38,7 @@ const UploadPrescriptionScreen = ({ route, navigation }) => {
         }
         return ImagePicker.launchImageLibraryAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: true,
+         
         });
       })
       .then((response) => {
@@ -88,84 +89,17 @@ const UploadPrescriptionScreen = ({ route, navigation }) => {
       .then((response) => response.json())
       .then((data) => {
         // Handle the response data
-
-        // Check for specific words in the response
-        const foundWords = data.filter(
-          (item) =>
-            (prescription_keywords = [
-              "doctor",
-              "hospital",
-              "dr",
-              "court",
-              "medicine",
-              "med",
-              "medical",
-              "medicare",
-              "clinic",
-              "Rx",
-              "tab",
-              "prescription",
-              "dosage",
-              "pharmacy",
-              "dosage",
-              "dispense",
-              "directions",
-              "pharmacist",
-              "diagnosis",
-              "compounded",
-              "refill",
-              "dispense as written",
-              "patient",
-              "dose",
-              "sig",
-              "disp",
-              "ref",
-              "medication",
-              "prescribe",
-              "compounding",
-              "pharmaceutical",
-              "adverse reaction",
-              "side effects",
-              "contraindications",
-              "over-the-counter",
-              "generic",
-              "brand name",
-              "capsule",
-              "tablet",
-              "pill",
-              "liquid",
-              "inhaler",
-              "ointment",
-              "cream",
-              "gel",
-              "solution",
-              "syrup",
-              "drop",
-              "ampule",
-              "vial",
-              "suppository",
-              "intravenous",
-              "intramuscular",
-              "subcutaneous",
-              "PRN",
-              "bid",
-              "tid",
-              "qid",
-              "qhs",
-              "q4h",
-              "q6h",
-              "q8h",
-              "q12h",
-              "q24h",
-              "before meals",
-              "after meals",
-              "with food",
-              "without food",
-              "as directed",
-            ].includes(item.text.toLowerCase()))
-        );
-
-        if (foundWords.length > 0) {
+        const extractedText = data
+          .map((item) => item.text.toLowerCase())
+          .join(" ");
+        console.log(extractedText);
+        
+        console.log(extractedText);
+        if((extractedText.includes('hospital')||extractedText.includes('clinic')||extractedText.includes('medicare')||extractedText.includes('medical complex')||extractedText.includes('doctor')||extractedText.includes('dr'))
+         && (extractedText.includes('tab')||extractedText.includes('dose')|| extractedText.includes('syrup') ||extractedText.includes('ph')||extractedText.includes('rx')|| extractedText.includes('consultant') || extractedText.includes('general') || extractedText.includes('mbbs') || extractedText.includes('clinical') )
+         && (extractedText.includes('date') || extractedText.includes('age'))
+         )
+        {
           const name = new Date().getTime() + "_prescription";
           const type = "image/jpg";
           const formData = new FormData();
@@ -185,7 +119,7 @@ const UploadPrescriptionScreen = ({ route, navigation }) => {
           })
             .then((response) => response.json())
             .then((data) => {
-              console.log(data);
+              
               // Handle the response data as needed
               setLoading(false);
               navigation.navigate("PrescriptionPlaceOrderScreen", {
@@ -217,84 +151,87 @@ const UploadPrescriptionScreen = ({ route, navigation }) => {
 
   return (
     <>
-    <Appbar.Header style={{backgroundColor:'#25d366'}}>
+      <StatusBar backgroundColor="#25d366"></StatusBar>
+      <Appbar.Header style={{ backgroundColor: "#25d366" }}>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title="Upload Prescription" />
       </Appbar.Header>
 
-    <View style={styles.container}>
-      {/* Image Instructions Section */}
-      
-      <Title style={styles.title}>Upload your Prescription</Title>
-      <View style={styles.instructionsContainer}>
-        <Title style={styles.instructionsTitle}>Instructions</Title>
-        <Text style={styles.instructionsText}>
-          - Prescription must have clinic/hospital name {"\n"} printed on it{" "}
-          {"\n"}- Must not contain your personal information {"\n"}- Do not
-          upload any handwritten medicines only.{"\n"}- You can hide your
-          identity as well
-        </Text>
-      </View>
+      <View style={styles.container}>
+        {/* Image Instructions Section */}
 
-      <TouchableOpacity style={{ color: "#25d366" }} onPress={openImageLibrary}>
-        <View style={styles.imageContainer}>
-          {selectedImage ? (
-            <Image source={{ uri: selectedImage }} style={styles.image} />
-          ) : (
-            <Text style={{ color: "#25d366", marginTop: 20 }}>
-              Click here to Select Image
-            </Text>
-          )}
+        <Title style={styles.title}>Upload your Prescription</Title>
+        <View style={styles.instructionsContainer}>
+          <Title style={styles.instructionsTitle}>Instructions</Title>
+          <Text style={styles.instructionsText}>
+            - Prescription must have clinic/hospital name {"\n"} printed on it{" "}
+            {"\n"}- Must not contain your personal information {"\n"}- Do not
+            upload any handwritten medicines only.{"\n"}- You can hide your
+            identity as well
+          </Text>
         </View>
-      </TouchableOpacity>
-      <View style={styles.switchContainer}>
-        <Text>Hide Identity</Text>
-        <Switch
-          value={switchOn}
-          onValueChange={() => {
-            setSwitchOn(!switchOn);
+
+        <TouchableOpacity
+          style={{ color: "#25d366" }}
+          onPress={openImageLibrary}
+        >
+          <View style={styles.imageContainer}>
+            {selectedImage ? (
+              <Image source={{ uri: selectedImage }} style={styles.image} />
+            ) : (
+              <Text style={{ color: "#25d366", marginTop: 20 }}>
+                Click here to Select Image
+              </Text>
+            )}
+          </View>
+        </TouchableOpacity>
+        <View style={styles.switchContainer}>
+          <Text>Hide Identity</Text>
+          <Switch
+            value={switchOn}
+            onValueChange={() => {
+              setSwitchOn(!switchOn);
+            }}
+            trackColor={{ false: "#767577", true: "#25d366" }}
+            thumbColor={switchOn ? "#25d366" : "#f4f3f4"}
+          />
+        </View>
+        {durationError && <Text style={styles.errorText}>{durationError}</Text>}
+
+        <TextInput
+          placeholder="Duration (days) 1-30"
+          keyboardType="numeric"
+          style={[
+            styles.input,
+            durationError && { borderColor: "red" }, // Highlight border red on error
+          ]}
+          value={duration}
+          onChangeText={(text) => {
+            setDuration(text);
+            setDurationError(null); // Clear error when user types
           }}
-          trackColor={{ false: "#767577", true: "#25d366" }}
-          thumbColor={switchOn ? "#25d366" : "#f4f3f4"}
+          onBlur={() => {
+            // Validate and set error when user focuses off the field
+            if (!duration || isNaN(duration) || duration < 1 || duration > 30) {
+              setDurationError(
+                "Please enter a valid duration between 1 and 30 days."
+              );
+            }
+          }}
         />
+
+        <TouchableOpacity onPress={handleCheckout} style={styles.signupButton}>
+          <Text style={styles.signupButtonText}>Checkout</Text>
+        </TouchableOpacity>
+        {loading && (
+          <View style={styles.loader}>
+            <ActivityIndicator size="large" color="#25d366" />
+            <Text style={{ marginTop: 10 }}>Validating Prescription...</Text>
+          </View>
+        )}
       </View>
-      {durationError && <Text style={styles.errorText}>{durationError}</Text>}
-
-      <TextInput
-        placeholder="Duration (days) 1-30"
-        keyboardType="numeric"
-        style={[
-          styles.input,
-          durationError && { borderColor: "red" }, // Highlight border red on error
-        ]}
-        value={duration}
-        onChangeText={(text) => {
-          setDuration(text);
-          setDurationError(null); // Clear error when user types
-        }}
-        onBlur={() => {
-          // Validate and set error when user focuses off the field
-          if (!duration || isNaN(duration) || duration < 1 || duration > 30) {
-            setDurationError(
-              "Please enter a valid duration between 1 and 30 days."
-            );
-          }
-        }}
-      />
-
-      <TouchableOpacity onPress={handleCheckout} style={styles.signupButton}>
-        <Text style={styles.signupButtonText}>Checkout</Text>
-      </TouchableOpacity>
-      {loading && (
-        <View style={styles.loader}>
-          <ActivityIndicator size="large" color="#25d366" />
-          <Text style={{ marginTop: 10 }}>Validating Prescription...</Text>
-        </View>
-      )}
-    </View>
     </>
   );
 };
-
 
 export default UploadPrescriptionScreen;
