@@ -257,8 +257,43 @@ const getAllMeetingsByDvmId = async (req, res) => {
   }
 };
 
+const updateMeetingStatus = (req, res) => {
+  try {
+    const { meetingID, newStatus } = req.params;
+
+    // Check if the provided orderID is valid
+    Meeting.findByPk(meetingID)
+      .then((meeting) => {
+        if (!meeting) {
+          throw { status: 404, message: "meeting not found" };
+        }
+
+        // Update the meetingStatus
+        return meeting.update({ status: newStatus });
+      })
+      .then((updatedMeeting) => {
+        res.status(200).json({ success: true, updatedMeeting });
+      })
+      .catch((error) => {
+        console.error("Error updating meeting status:", error);
+        const status = error.status || 500;
+        res
+          .status(status)
+          .json({ error: error.message || "Internal Server Error" });
+      });
+  } catch (error) {
+    console.error("Error updating meeting status:", error);
+    const status = error.status || 500;
+    res
+      .status(status)
+      .json({ error: error.message || "Internal Server Error" });
+  }
+};
+
+
 // Export the controller function
 module.exports = {
+updateMeetingStatus,
   addDVM,
   getAllDVMs,
   getDvmMonthlyStats,
